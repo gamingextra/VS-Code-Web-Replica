@@ -1,0 +1,15 @@
+{
+  "name": "@vscode-web/kilocode-service",
+  "version": "1.0.0",
+  "description": "Kilocode integration service — bridges VS Code Web Replica with Kilo Code CLI daemon for AI-powered coding assistance",
+  "main": "index.ts",
+  "scripts": {
+    "start": "bun run index.ts",
+    "dev": "bun --watch index.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^22.0.0"
+  },
+  "license": "MIT"
+}
