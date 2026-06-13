@@ -1,0 +1,19 @@
+{
+  "code": 200,
+  "data": {
+    "description": "",
+    "html": "<html><head><meta name=\"color-scheme\" content=\"light dark\"></head><body><pre style=\"word-wrap: break-word; white-space: pre-wrap;\">[\n  {\n    \"name\": \"api-server\",\n    \"path\": \"artifacts/api-server\",\n    \"sha\": \"64944b2bc19204081a0cba0b9f99a159c28c3e1c\",\n    \"size\": 0,\n    \"url\": \"https://api.github.com/repos/gamingextra/VS-Code-Web-Replica/contents/artifacts/api-server?ref=main\",\n    \"html_url\": \"https://github.com/gamingextra/VS-Code-Web-Replica/tree/main/artifacts/api-server\",\n    \"git_url\": \"https://api.github.com/repos/gamingextra/VS-Code-Web-Replica/git/trees/64944b2bc19204081a0cba0b9f99a159c28c3e1c\",\n    \"download_url\": null,\n    \"type\": \"dir\",\n    \"_links\": {\n      \"self\": \"https://api.github.com/repos/gamingextra/VS-Code-Web-Replica/contents/artifacts/api-server?ref=main\",\n      \"git\": \"https://api.github.com/repos/gamingextra/VS-Code-Web-Replica/git/trees/64944b2bc19204081a0cba0b9f99a159c28c3e1c\",\n      \"html\": \"https://github.com/gamingextra/VS-Code-Web-Replica/tree/main/artifacts/api-server\"\n    }\n  },\n  {\n    \"name\": \"mockup-sandbox\",\n    \"path\": \"artifacts/mockup-sandbox\",\n    \"sha\": \"65d10f68462bb47d216a26c41226ebd8a7bbbf22\",\n    \"size\": 0,\n    \"url\": \"https://api.github.com/repos/gamingextra/VS-Code-Web-Replica/contents/artifacts/mockup-sandbox?ref=main\",\n    \"html_url\": \"https://github.com/gamingextra/VS-Code-Web-Replica/tree/main/artifacts/mockup-sandbox\",\n    \"git_url\": \"https://api.github.com/repos/gamingextra/VS-Code-Web-Replica/git/trees/65d10f68462bb47d216a26c41226ebd8a7bbbf22\",\n    \"download_url\": null,\n    \"type\": \"dir\",\n    \"_links\": {\n      \"self\": \"https://api.github.com/repos/gamingextra/VS-Code-Web-Replica/contents/artifacts/mockup-sandbox?ref=main\",\n      \"git\": \"https://api.github.com/repos/gamingextra/VS-Code-Web-Replica/git/trees/65d10f68462bb47d216a26c41226ebd8a7bbbf22\",\n      \"html\": \"https://github.com/gamingextra/VS-Code-Web-Replica/tree/main/artifacts/mockup-sandbox\"\n    }\n  },\n  {\n    \"name\": \"vscode-web\",\n    \"path\": \"artifacts/vscode-web\",\n    \"sha\": \"5a3d9d038ba6bb0efa54d72e9aad0b351a7a735a\",\n    \"size\": 0,\n    \"url\": \"https://api.github.com/repos/gamingextra/VS-Code-Web-Replica/contents/artifacts/vscode-web?ref=main\",\n    \"html_url\": \"https://github.com/gamingextra/VS-Code-Web-Replica/tree/main/artifacts/vscode-web\",\n    \"git_url\": \"https://api.github.com/repos/gamingextra/VS-Code-Web-Replica/git/trees/5a3d9d038ba6bb0efa54d72e9aad0b351a7a735a\",\n    \"download_url\": null,\n    \"type\": \"dir\",\n    \"_links\": {\n      \"self\": \"https://api.github.com/repos/gamingextra/VS-Code-Web-Replica/contents/artifacts/vscode-web?ref=main\",\n      \"git\": \"https://api.github.com/repos/gamingextra/VS-Code-Web-Replica/git/trees/5a3d9d038ba6bb0efa54d72e9aad0b351a7a735a\",\n      \"html\": \"https://github.com/gamingextra/VS-Code-Web-Replica/tree/main/artifacts/vscode-web\"\n    }\n  }\n]\n</pre></body></html>",
+    "publishedTime": "Sat, 13 Jun 2026 09:46:24 GMT",
+    "title": "",
+    "url": "https://api.github.com/repos/gamingextra/VS-Code-Web-Replica/contents/artifacts",
+    "usage": {
+      "tokens": 1003
+    }
+  },
+  "meta": {
+    "usage": {
+      "tokens": 1003
+    }
+  },
+  "status": 20000
+}

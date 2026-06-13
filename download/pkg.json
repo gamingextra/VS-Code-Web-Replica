@@ -1,0 +1,18 @@
+{
+  "code": 200,
+  "data": {
+    "description": "",
+    "html": "<html><head><meta name=\"color-scheme\" content=\"light dark\"></head><body><pre style=\"word-wrap: break-word; white-space: pre-wrap;\">{\n  \"name\": \"workspace\",\n  \"version\": \"0.0.0\",\n  \"license\": \"MIT\",\n  \"scripts\": {\n    \"preinstall\": \"sh -c 'rm -f package-lock.json yarn.lock; case \\\"$npm_config_user_agent\\\" in pnpm/*) ;; *) echo \\\"Use pnpm instead\\\" >&2; exit 1 ;; esac'\",\n    \"build\": \"pnpm run typecheck && pnpm -r --if-present run build\",\n    \"typecheck:libs\": \"tsc --build\",\n    \"typecheck\": \"pnpm run typecheck:libs && pnpm -r --filter \\\"./artifacts/**\\\" --filter \\\"./scripts\\\" --if-present run typecheck\"\n  },\n  \"private\": true,\n  \"devDependencies\": {\n    \"prettier\": \"^3.8.3\",\n    \"typescript\": \"~5.9.3\"\n  }\n}\n</pre></body></html>",
+    "title": "",
+    "url": "https://raw.githubusercontent.com/gamingextra/VS-Code-Web-Replica/main/package.json",
+    "usage": {
+      "tokens": 236
+    }
+  },
+  "meta": {
+    "usage": {
+      "tokens": 236
+    }
+  },
+  "status": 20000
+}

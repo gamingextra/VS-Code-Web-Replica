@@ -1,0 +1,23 @@
+{
+  "code": 200,
+  "data": {
+    "description": "",
+    "external": {},
+    "html": "<html><head><meta name=\"color-scheme\" content=\"light dark\"><meta charset=\"utf-8\"></head><body><pre>[\n  {\n    \"name\": \"not-found.tsx\",\n    \"path\": \"artifacts/vscode-web/src/pages/not-found.tsx\",\n    \"sha\": \"dba9f8316f8e796e2808090c4f6cf770e6b90c4a\",\n    \"size\": 711,\n    \"url\": \"https://api.github.com/repos/gamingextra/VS-Code-Web-Replica/contents/artifacts/vscode-web/src/pages/not-found.tsx?ref=main\",\n    \"html_url\": \"https://github.com/gamingextra/VS-Code-Web-Replica/blob/main/artifacts/vscode-web/src/pages/not-found.tsx\",\n    \"git_url\": \"https://api.github.com/repos/gamingextra/VS-Code-Web-Replica/git/blobs/dba9f8316f8e796e2808090c4f6cf770e6b90c4a\",\n    \"download_url\": \"https://raw.githubusercontent.com/gamingextra/VS-Code-Web-Replica/main/artifacts/vscode-web/src/pages/not-found.tsx\",\n    \"type\": \"file\",\n    \"_links\": {\n      \"self\": \"https://api.github.com/repos/gamingextra/VS-Code-Web-Replica/contents/artifacts/vscode-web/src/pages/not-found.tsx?ref=main\",\n      \"git\": \"https://api.github.com/repos/gamingextra/VS-Code-Web-Replica/git/blobs/dba9f8316f8e796e2808090c4f6cf770e6b90c4a\",\n      \"html\": \"https://github.com/gamingextra/VS-Code-Web-Replica/blob/main/artifacts/vscode-web/src/pages/not-found.tsx\"\n    }\n  }\n]\n</pre><div class=\"json-formatter-container\"></div></body></html>",
+    "metadata": {
+      "color-scheme": "light dark"
+    },
+    "publishedTime": "Sat, 13 Jun 2026 09:46:24 GMT",
+    "title": "",
+    "url": "https://api.github.com/repos/gamingextra/VS-Code-Web-Replica/contents/artifacts/vscode-web/src/pages",
+    "usage": {
+      "tokens": 435
+    }
+  },
+  "meta": {
+    "usage": {
+      "tokens": 435
+    }
+  },
+  "status": 20000
+}

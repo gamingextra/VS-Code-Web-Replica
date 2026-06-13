@@ -1,0 +1,18 @@
+{
+  "code": 200,
+  "data": {
+    "description": "",
+    "html": "<html><head><meta name=\"color-scheme\" content=\"light dark\"></head><body><pre style=\"word-wrap: break-word; white-space: pre-wrap;\">import { defineConfig } from \"vite\";\nimport react from \"@vitejs/plugin-react\";\nimport tailwindcss from \"@tailwindcss/vite\";\nimport path from \"path\";\nimport runtimeErrorOverlay from \"@replit/vite-plugin-runtime-error-modal\";\n\nconst rawPort = process.env.PORT;\n\nif (!rawPort) {\n  throw new Error(\n    \"PORT environment variable is required but was not provided.\",\n  );\n}\n\nconst port = Number(rawPort);\n\nif (Number.isNaN(port) || port <= 0) {\n  throw new Error(`Invalid PORT value: \"${rawPort}\"`);\n}\n\nconst basePath = process.env.BASE_PATH;\n\nif (!basePath) {\n  throw new Error(\n    \"BASE_PATH environment variable is required but was not provided.\",\n  );\n}\n\nexport default defineConfig({\n  base: basePath,\n  plugins: [\n    react(),\n    tailwindcss(),\n    runtimeErrorOverlay(),\n    ...(process.env.NODE_ENV !== \"production\" &&\n    process.env.REPL_ID !== undefined\n      ? [\n          await import(\"@replit/vite-plugin-cartographer\").then((m) =>\n            m.cartographer({\n              root: path.resolve(import.meta.dirname, \"..\"),\n            }),\n          ),\n          await import(\"@replit/vite-plugin-dev-banner\").then((m) =>\n            m.devBanner(),\n          ),\n        ]\n      : []),\n  ],\n  resolve: {\n    alias: {\n      \"@\": path.resolve(import.meta.dirname, \"src\"),\n      \"@assets\": path.resolve(import.meta.dirname, \"..\", \"..\", \"attached_assets\"),\n    },\n    dedupe: [\"react\", \"react-dom\"],\n  },\n  root: path.resolve(import.meta.dirname),\n  build: {\n    outDir: path.resolve(import.meta.dirname, \"dist/public\"),\n    emptyOutDir: true,\n  },\n  server: {\n    port,\n    strictPort: true,\n    host: \"0.0.0.0\",\n    allowedHosts: true,\n    fs: {\n      strict: true,\n    },\n  },\n  preview: {\n    port,\n    host: \"0.0.0.0\",\n    allowedHosts: true,\n  },\n});\n</pre></body></html>",
+    "title": "",
+    "url": "https://raw.githubusercontent.com/gamingextra/VS-Code-Web-Replica/main/artifacts/vscode-web/vite.config.ts",
+    "usage": {
+      "tokens": 480
+    }
+  },
+  "meta": {
+    "usage": {
+      "tokens": 480
+    }
+  },
+  "status": 20000
+}

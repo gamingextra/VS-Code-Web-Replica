@@ -1,0 +1,18 @@
+{
+  "code": 200,
+  "data": {
+    "description": "",
+    "html": "<html><head><meta name=\"color-scheme\" content=\"light dark\"></head><body><pre style=\"word-wrap: break-word; white-space: pre-wrap;\"># [Project name]\n\n_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._\n\n## Run & Operate\n\n- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)\n- `pnpm run typecheck` — full typecheck across all packages\n- `pnpm run build` — typecheck + build all packages\n- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec\n- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)\n- Required env: `DATABASE_URL` — Postgres connection string\n\n## Stack\n\n- pnpm workspaces, Node.js 24, TypeScript 5.9\n- API: Express 5\n- DB: PostgreSQL + Drizzle ORM\n- Validation: Zod (`zod/v4`), `drizzle-zod`\n- API codegen: Orval (from OpenAPI spec)\n- Build: esbuild (CJS bundle)\n\n## Where things live\n\n_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._\n\n## Architecture decisions\n\n_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._\n\n## Product\n\n_Describe the high-level user-facing capabilities of this app once they exist._\n\n## User preferences\n\n_Populate as you build — explicit user instructions worth remembering across sessions._\n\n## Gotchas\n\n_Populate as you build — sharp edges, \"always run X before Y\" rules._\n\n## Pointers\n\n- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details\n</pre></body></html>",
+    "title": "",
+    "url": "https://raw.githubusercontent.com/gamingextra/VS-Code-Web-Replica/main/replit.md",
+    "usage": {
+      "tokens": 424
+    }
+  },
+  "meta": {
+    "usage": {
+      "tokens": 424
+    }
+  },
+  "status": 20000
+}
