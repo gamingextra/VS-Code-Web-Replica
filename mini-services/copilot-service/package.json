@@ -1,0 +1,9 @@
+{
+  "name": "copilot-service",
+  "version": "1.0.0",
+  "description": "AI Inline Completion Service - Python FastAPI microservice",
+  "scripts": {
+    "dev": "bash run.sh",
+    "start": "bash run.sh"
+  }
+}

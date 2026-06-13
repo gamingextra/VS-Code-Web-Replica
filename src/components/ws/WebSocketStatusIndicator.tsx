@@ -16,23 +16,18 @@ export function WebSocketStatusIndicator() {
   const { status, latency, connectedAt, reconnectAttempts, serverUrl, messages } = useWebSocketStore();
   const { isMobile } = useBreakpoint();
   const [showDetails, setShowDetails] = useState(false);
-  const [uptime, setUptime] = useState('');
 
   const config = STATUS_CONFIG[status];
 
-  useEffect(() => {
-    if (!connectedAt) { setUptime('--'); return; }
-    const updateUptime = () => {
-      const diff = Date.now() - connectedAt;
-      const mins = Math.floor(diff / 60000);
-      const hrs = Math.floor(mins / 60);
-      if (hrs > 0) setUptime(`${hrs}h ${mins % 60}m`);
-      else setUptime(`${mins}m`);
-    };
-    updateUptime();
-    const interval = setInterval(updateUptime, 60000);
-    return () => clearInterval(interval);
-  }, [connectedAt]);
+  // Compute uptime as derived value, not effect-driven state
+  const uptime = (() => {
+    if (!connectedAt) return '--';
+    const diff = Date.now() - connectedAt;
+    const mins = Math.floor(diff / 60000);
+    const hrs = Math.floor(mins / 60);
+    if (hrs > 0) return `${hrs}h ${mins % 60}m`;
+    return `${mins}m`;
+  })();
 
   useEffect(() => {
     if (status !== 'connected') return;

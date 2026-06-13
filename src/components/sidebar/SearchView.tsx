@@ -52,12 +52,15 @@ export function SearchView() {
   // Simulate file indexing
   useEffect(() => {
     if (allFiles.length > 0 && indexStatus === 'idle') {
-      setFileCount(allFiles.length);
-      setIndexStatus('indexing');
-      const timer = setTimeout(() => {
-        setIndexStatus('indexed');
-      }, 800);
-      return () => clearTimeout(timer);
+      const timer1 = setTimeout(() => {
+        setFileCount(allFiles.length);
+        setIndexStatus('indexing');
+        const timer2 = setTimeout(() => {
+          setIndexStatus('indexed');
+        }, 800);
+        return () => clearTimeout(timer2);
+      }, 0);
+      return () => clearTimeout(timer1);
     }
   }, [allFiles.length, indexStatus]);
 

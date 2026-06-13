@@ -31,6 +31,7 @@ import { useBreakpoint } from '@/hooks/useWindowSize';
 import { useGlobalSwipeGesture } from '@/hooks/useSwipeGesture';
 import { AICompletionIndicator } from '@/components/ai/AICompletionIndicator';
 import { CodeExecutionPanel } from '@/components/execution/CodeExecutionPanel';
+import { ServiceHealthPanel } from '@/components/ws/ServiceHealthPanel';
 
 function KeyboardShortcutsPanel({ onClose }: { onClose: () => void }) {
   const { isMobile } = useBreakpoint();
@@ -419,6 +420,7 @@ export default function Home() {
       {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
       {kbShortcutsOpen && <KeyboardShortcutsPanel onClose={() => setKbShortcutsOpen(false)} />}
       <NotificationCenter />
+      <ServiceHealthPanel />
 
       {/* Workspace Trust Dialog */}
       {showTrustDialog && !workspaceTrusted && (

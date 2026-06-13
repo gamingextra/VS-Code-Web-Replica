@@ -1,0 +1,57 @@
+[package]
+name = "vscode-search-service"
+version = "1.0.0"
+edition = "2021"
+description = "High-performance file indexing and search service for VS Code Web Replica"
+authors = ["VS Code Web Replica Team"]
+
+[dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Web framework
+axum = { version = "0.7", features = ["macros"] }
+axum-extra = { version = "0.9", features = ["typed-header"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors", "trace"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Search & matching
+regex = "1"
+
+# File walking with .gitignore support
+walkdir = "2"
+ignore = "0.4"
+
+# File watching
+notify = { version = "6", features = ["macos_kqueue"] }
+notify-debouncer-mini = "0.4"
+
+# Parallel processing
+rayon = "1.10"
+
+# Logging & tracing
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# Utilities
+uuid = { version = "1", features = ["v4"] }
+chrono = { version = "0.4", features = ["serde"] }
+dashmap = "6"
+ahash = "0.8"
+parking_lot = "0.12"
+arc-swap = "1"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"
+
+[profile.dev]
+opt-level = 0
+debug = true

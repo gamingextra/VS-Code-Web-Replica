@@ -1,39 +1,80 @@
 import { create } from 'zustand';
+import { login as apiLogin } from '@/lib/api-client';
 
 interface AuthState {
   isAuthenticated: boolean;
   username: string;
   isLoggingIn: boolean;
   error: string | null;
+  token: string | null;
+  backendAvailable: boolean;
+
   login: (password: string) => boolean;
   logout: () => void;
   clearError: () => void;
 }
 
-// Simulated password (like code-server's randomly generated password)
 const VALID_PASSWORD = 'vscode';
 const VALID_USERNAME = 'coder';
 
-export const useAuthStore = create<AuthState>((set) => ({
-  isAuthenticated: false,
+export const useAuthStore = create<AuthState>((set, get) => ({
+  isAuthenticated: typeof window !== 'undefined' ? localStorage.getItem('vscode-auth') === 'true' : false,
   username: '',
   isLoggingIn: false,
   error: null,
+  token: null,
+  backendAvailable: true,
 
   login: (password: string) => {
     set({ isLoggingIn: true, error: null });
-    // Simulate network delay
-    setTimeout(() => {
+
+    // Try real API first
+    apiLogin(password).then((result) => {
+      if (result.success) {
+        set({
+          isAuthenticated: true,
+          username: result.username || VALID_USERNAME,
+          isLoggingIn: false,
+          error: null,
+          token: result.token || null,
+          backendAvailable: true,
+        });
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('vscode-auth', 'true');
+          if (result.token) localStorage.setItem('vscode-token', result.token);
+        }
+      } else {
+        set({
+          isAuthenticated: false,
+          isLoggingIn: false,
+          error: result.error || 'Login failed',
+          backendAvailable: true,
+        });
+      }
+    }).catch(() => {
+      // Fallback: local authentication
       if (password === VALID_PASSWORD) {
-        set({ isAuthenticated: true, username: VALID_USERNAME, isLoggingIn: false, error: null });
+        set({
+          isAuthenticated: true,
+          username: VALID_USERNAME,
+          isLoggingIn: false,
+          error: null,
+          backendAvailable: false,
+        });
         if (typeof window !== 'undefined') {
           localStorage.setItem('vscode-auth', 'true');
         }
       } else {
-        set({ isAuthenticated: false, isLoggingIn: false, error: 'Incorrect password. Please try again.' });
+        set({
+          isAuthenticated: false,
+          isLoggingIn: false,
+          error: 'Incorrect password. Please try again.',
+          backendAvailable: false,
+        });
       }
-    }, 300);
-    // Return true for correct password (synchronous check for immediate feedback)
+    });
+
+    // Synchronous check for immediate UI feedback
     if (password === VALID_PASSWORD) {
       set({ isAuthenticated: true, username: VALID_USERNAME, isLoggingIn: false, error: null });
       if (typeof window !== 'undefined') {
@@ -46,9 +87,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: () => {
-    set({ isAuthenticated: false, username: '' });
+    set({ isAuthenticated: false, username: '', token: null });
     if (typeof window !== 'undefined') {
       localStorage.removeItem('vscode-auth');
+      localStorage.removeItem('vscode-token');
     }
   },
 
