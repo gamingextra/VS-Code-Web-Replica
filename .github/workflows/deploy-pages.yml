@@ -13,6 +13,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  administrations: write
 
 concurrency:
   group: "pages"
@@ -28,16 +29,14 @@ jobs:
         run: |
           REPO="${{ github.repository }}"
           # Check if Pages is already enabled
-          STATUS=$(gh api "repos/$REPO/pages" 2>/dev/null || echo "NOT_FOUND")
-          if echo "$STATUS" | grep -q "NOT_FOUND"; then
+          if gh api "repos/$REPO/pages" > /dev/null 2>&1; then
+            echo "Pages already enabled."
+          else
             echo "Enabling GitHub Pages with GitHub Actions source..."
             gh api "repos/$REPO/pages" \
               --method POST \
-              --field source='{"branch":"feature/code-server-enhancements","path":"/docs"}' \
-              --field build_type=workflow || true
-            echo "Pages enabled. Note: You may need to verify this in Settings > Pages."
-          else
-            echo "Pages already enabled."
+              --field build_type=workflow 2>/dev/null || true
+            echo "Pages enabled. You may also need to configure it at Settings > Pages > Source: GitHub Actions"
           fi
 
   build:
