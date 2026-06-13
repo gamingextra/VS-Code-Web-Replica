@@ -4,6 +4,7 @@ import { useEditorStore } from '@/store/editorStore';
 import { getLanguageFromFilename } from '@/utils/language';
 import { SearchIcon } from '@/components/icons';
 import { CaseSensitiveIcon, WholeWordIcon, RegexIcon, ReplaceIcon, ReplaceAllIcon } from './ExtensionIcons';
+import { toast } from 'sonner';
 
 interface SearchResult {
   path: string;
@@ -13,17 +14,14 @@ interface SearchResult {
   matchStart: number;
   matchEnd: number;
   language: string;
+  nodeId: string;
 }
 
 function getAllFiles(nodes: FileNode[]): FileNode[] {
   const files: FileNode[] = [];
   for (const node of nodes) {
-    if (node.type === 'file') {
-      files.push(node);
-    }
-    if (node.children) {
-      files.push(...getAllFiles(node.children));
-    }
+    if (node.type === 'file') files.push(node);
+    if (node.children) files.push(...getAllFiles(node.children));
   }
   return files;
 }
@@ -33,7 +31,7 @@ function escapeRegExp(string: string): string {
 }
 
 export function SearchView() {
-  const { root } = useFileSystemStore();
+  const { root, updateNodeContent } = useFileSystemStore();
   const { openFile } = useEditorStore();
   const [query, setQuery] = useState('');
   const [replaceText, setReplaceText] = useState('');
@@ -43,104 +41,133 @@ export function SearchView() {
   const [useRegex, setUseRegex] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
+  const [collapsedFiles, setCollapsedFiles] = useState<Set<string>>(new Set());
   const inputRef = useRef<HTMLInputElement>(null);
 
   const allFiles = useMemo(() => getAllFiles(root), [root]);
 
-  const performSearch = useCallback(() => {
-    if (!query.trim()) {
-      setResults([]);
-      setHasSearched(true);
-      return;
+  const buildRegex = useCallback((q: string): RegExp | null => {
+    try {
+      if (useRegex) {
+        return new RegExp(q, matchCase ? 'g' : 'gi');
+      } else {
+        const escaped = escapeRegExp(q);
+        const pattern = wholeWord ? `\\b${escaped}\\b` : escaped;
+        return new RegExp(pattern, matchCase ? 'g' : 'gi');
+      }
+    } catch {
+      return null;
     }
+  }, [useRegex, matchCase, wholeWord]);
+
+  const performSearch = useCallback(() => {
+    if (!query.trim()) { setResults([]); setHasSearched(true); return; }
+    const regex = buildRegex(query);
+    if (!regex) { setResults([]); setHasSearched(true); return; }
 
     const searchResults: SearchResult[] = [];
-
     for (const file of allFiles) {
       if (!file.content) continue;
-
       const lines = file.content.split('\n');
-      let regex: RegExp;
-
-      try {
-        if (useRegex) {
-          const flags = matchCase ? 'g' : 'gi';
-          regex = new RegExp(query, flags);
-        } else {
-          const escaped = escapeRegExp(query);
-          const wordBoundary = wholeWord ? `\\b${escaped}\\b` : escaped;
-          const flags = matchCase ? 'g' : 'gi';
-          regex = new RegExp(wordBoundary, flags);
-        }
-      } catch {
-        // Invalid regex
-        continue;
-      }
-
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        const matches = Array.from(line.matchAll(regex));
+        regex.lastIndex = 0;
+        const matches = Array.from(line.matchAll(new RegExp(regex.source, regex.flags)));
         for (const match of matches) {
           if (match.index !== undefined) {
             searchResults.push({
-              path: file.path,
-              name: file.name,
-              line: i + 1,
-              content: line,
-              matchStart: match.index,
-              matchEnd: match.index + match[0].length,
-              language: file.language || 'plaintext',
+              path: file.path, name: file.name, line: i + 1,
+              content: line, matchStart: match.index, matchEnd: match.index + match[0].length,
+              language: file.language || 'plaintext', nodeId: file.id,
             });
           }
         }
       }
     }
-
     setResults(searchResults);
     setHasSearched(true);
-  }, [query, allFiles, matchCase, wholeWord, useRegex]);
+  }, [query, allFiles, buildRegex]);
+
+  const handleReplaceAll = useCallback(() => {
+    if (!query.trim()) return;
+    const regex = buildRegex(query);
+    if (!regex) return;
+
+    let totalReplaced = 0;
+    const affectedFiles = new Set<string>();
+
+    for (const file of allFiles) {
+      if (!file.content) continue;
+      const newRegex = new RegExp(regex.source, regex.flags);
+      const newContent = file.content.replace(newRegex, replaceText);
+      if (newContent !== file.content) {
+        updateNodeContent(file.id, newContent);
+        affectedFiles.add(file.name);
+        const matchCount = (file.content.match(newRegex) || []).length;
+        totalReplaced += matchCount;
+      }
+    }
+
+    if (totalReplaced > 0) {
+      toast.success(`Replaced ${totalReplaced} occurrence${totalReplaced > 1 ? 's' : ''} in ${affectedFiles.size} file${affectedFiles.size > 1 ? 's' : ''}`);
+      setResults([]);
+      setHasSearched(false);
+    } else {
+      toast.info('No replacements made');
+    }
+  }, [query, replaceText, allFiles, buildRegex, updateNodeContent]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      performSearch();
-    }
+    if (e.key === 'Enter') performSearch();
   }, [performSearch]);
 
   const handleResultClick = useCallback((result: SearchResult) => {
-    const file = allFiles.find(f => f.path === result.path);
-    if (file && file.content) {
+    const file = allFiles.find((f) => f.path === result.path);
+    if (file && file.content !== undefined) {
       const lang = getLanguageFromFilename(file.name);
       openFile(file.path, file.name, file.content, lang);
     }
   }, [allFiles, openFile]);
 
-  // Group results by file
   const groupedResults = useMemo(() => {
     const groups: Record<string, SearchResult[]> = {};
     for (const r of results) {
-      if (!groups[r.path]) {
-        groups[r.path] = [];
-      }
+      if (!groups[r.path]) groups[r.path] = [];
       groups[r.path].push(r);
     }
     return groups;
   }, [results]);
 
+  const toggleFileCollapse = (path: string) => {
+    setCollapsedFiles((prev) => {
+      const next = new Set(prev);
+      if (next.has(path)) next.delete(path);
+      else next.add(path);
+      return next;
+    });
+  };
+
   const toggleButtons = [
-    { id: 'case', icon: CaseSensitiveIcon, active: matchCase, onClick: () => setMatchCase(!matchCase), title: 'Match Case' },
-    { id: 'word', icon: WholeWordIcon, active: wholeWord, onClick: () => setWholeWord(!wholeWord), title: 'Match Whole Word' },
-    { id: 'regex', icon: RegexIcon, active: useRegex, onClick: () => setUseRegex(!useRegex), title: 'Use Regular Expression' },
+    { id: 'case', icon: CaseSensitiveIcon, active: matchCase, onClick: () => setMatchCase(!matchCase), title: 'Match Case (Alt+C)' },
+    { id: 'word', icon: WholeWordIcon, active: wholeWord, onClick: () => setWholeWord(!wholeWord), title: 'Match Whole Word (Alt+W)' },
+    { id: 'regex', icon: RegexIcon, active: useRegex, onClick: () => setUseRegex(!useRegex), title: 'Use Regular Expression (Alt+R)' },
   ];
+
+  const totalResults = results.length;
+  const totalFiles = Object.keys(groupedResults).length;
 
   return (
     <div className="flex flex-col h-full text-[var(--vscode-fg)]">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2">
+      <div className="flex items-center justify-between px-4 py-2 flex-shrink-0">
         <span className="text-xs font-bold tracking-wide opacity-80">SEARCH</span>
+        {hasSearched && totalResults > 0 && (
+          <span className="text-[10px] opacity-50">{totalResults} result{totalResults !== 1 ? 's' : ''} in {totalFiles} file{totalFiles !== 1 ? 's' : ''}</span>
+        )}
       </div>
 
       {/* Search input */}
-      <div className="px-3 space-y-1">
+      <div className="px-3 space-y-1 flex-shrink-0">
         <div className="relative">
           <SearchIcon size={14} className="absolute left-2 top-1/2 -translate-y-1/2 opacity-50" />
           <input
@@ -161,85 +188,96 @@ export function SearchView() {
           </button>
         </div>
 
-        {/* Replace input (collapsible) */}
         {showReplace && (
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Replace"
-              value={replaceText}
-              onChange={(e) => setReplaceText(e.target.value)}
-              className="w-full pl-7 pr-6 py-1 text-xs bg-[var(--vscode-input-bg)] border border-[var(--vscode-input-border)] rounded text-[var(--vscode-fg)] placeholder:opacity-50 outline-none focus:border-[var(--vscode-focusBorder)]"
-            />
-            <ReplaceAllIcon size={14} className="absolute left-2 top-1/2 -translate-y-1/2 opacity-50" />
+          <div className="flex items-center gap-1">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                placeholder="Replace"
+                value={replaceText}
+                onChange={(e) => setReplaceText(e.target.value)}
+                className="w-full pl-2 pr-2 py-1 text-xs bg-[var(--vscode-input-bg)] border border-[var(--vscode-input-border)] rounded text-[var(--vscode-fg)] placeholder:opacity-50 outline-none focus:border-[var(--vscode-focusBorder)]"
+              />
+            </div>
+            <button
+              onClick={handleReplaceAll}
+              title="Replace All"
+              className="w-6 h-6 flex items-center justify-center opacity-60 hover:opacity-100 hover:bg-[var(--vscode-list-hover)] rounded flex-shrink-0"
+            >
+              <ReplaceAllIcon size={14} />
+            </button>
           </div>
         )}
 
-        {/* Toggle buttons */}
         <div className="flex gap-1 pt-1">
-          {toggleButtons.map(btn => (
+          {toggleButtons.map((btn) => (
             <button
               key={btn.id}
               title={btn.title}
               onClick={btn.onClick}
               className={`w-6 h-6 flex items-center justify-center rounded ${
                 btn.active
-                  ? 'bg-[var(--vscode-list-active)] text-[var(--vscode-fg)]'
-                  : 'text-[var(--vscode-fg)] opacity-50 hover:opacity-80 hover:bg-[var(--vscode-list-hover)]'
+                  ? 'bg-[var(--vscode-list-active)]'
+                  : 'opacity-50 hover:opacity-80 hover:bg-[var(--vscode-list-hover)]'
               }`}
             >
               <btn.icon size={14} />
             </button>
           ))}
+          <button
+            onClick={performSearch}
+            className="ml-auto text-[10px] px-2 py-0.5 bg-[var(--vscode-button-bg)] text-white rounded hover:opacity-90"
+          >
+            Search
+          </button>
         </div>
       </div>
 
       {/* Results */}
       <div className="flex-1 overflow-auto mt-2">
-        {!hasSearched && query.trim() === '' && (
-          <div className="px-4 py-2 text-xs opacity-50">
-            Type a search term and press Enter to search across files.
-          </div>
+        {!hasSearched && (
+          <div className="px-4 py-2 text-xs opacity-50">Type a search term and press Enter.</div>
         )}
-        {hasSearched && results.length === 0 && query.trim() !== '' && (
-          <div className="px-4 py-2 text-xs opacity-50">
-            No results found for &quot;{query}&quot;.
-          </div>
+        {hasSearched && totalResults === 0 && query.trim() !== '' && (
+          <div className="px-4 py-2 text-xs opacity-50">No results for &quot;{query}&quot;</div>
         )}
 
-        {Object.entries(groupedResults).map(([path, fileResults]) => (
-          <div key={path} className="mb-1">
-            {/* File header */}
-            <div className="flex items-center gap-1 px-3 py-1 text-xs hover:bg-[var(--vscode-list-hover)] cursor-pointer">
-              <span className="truncate font-medium opacity-80">{fileResults[0]?.name}</span>
-              <span className="truncate opacity-40 ml-1">{path}</span>
-              <span className="ml-auto opacity-40 text-[10px]">{fileResults.length} results</span>
+        {Object.entries(groupedResults).map(([path, fileResults]) => {
+          const isCollapsed = collapsedFiles.has(path);
+          return (
+            <div key={path} className="mb-0.5">
+              <div
+                className="flex items-center gap-1 px-3 py-1 text-xs hover:bg-[var(--vscode-list-hover)] cursor-pointer select-none"
+                onClick={() => toggleFileCollapse(path)}
+              >
+                <span className="opacity-40 w-3 text-[10px]">{isCollapsed ? '▸' : '▾'}</span>
+                <span className="font-medium opacity-90">{fileResults[0]?.name}</span>
+                <span className="opacity-40 ml-1 truncate">{path}</span>
+                <span className="ml-auto opacity-40 text-[10px] flex-shrink-0">{fileResults.length}</span>
+              </div>
+              {!isCollapsed && fileResults.map((result, idx) => {
+                const before = result.content.slice(0, result.matchStart).trimStart();
+                const match = result.content.slice(result.matchStart, result.matchEnd);
+                const after = result.content.slice(result.matchEnd);
+                return (
+                  <div
+                    key={idx}
+                    className="flex items-start gap-2 px-3 py-0.5 cursor-pointer hover:bg-[var(--vscode-list-hover)] text-xs"
+                    style={{ fontFamily: 'var(--font-editor)' }}
+                    onClick={() => handleResultClick(result)}
+                  >
+                    <span className="opacity-40 w-7 text-right flex-shrink-0 select-none pt-px">{result.line}</span>
+                    <span className="truncate opacity-80 min-w-0">
+                      {before}
+                      <span className="bg-[#f4a460] text-black rounded-sm px-px">{match}</span>
+                      {after}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
-            {/* Line results */}
-            {fileResults.map((result, idx) => {
-              const before = result.content.slice(0, result.matchStart);
-              const match = result.content.slice(result.matchStart, result.matchEnd);
-              const after = result.content.slice(result.matchEnd);
-
-              return (
-                <div
-                  key={idx}
-                  className="flex items-start gap-2 px-3 py-0.5 cursor-pointer hover:bg-[var(--vscode-list-hover)] text-xs font-editor"
-                  onClick={() => handleResultClick(result)}
-                >
-                  <span className="opacity-40 w-8 text-right flex-shrink-0 select-none">
-                    {result.line}
-                  </span>
-                  <span className="truncate opacity-80">
-                    {before}
-                    <span className="bg-[#f4a460] text-black">{match}</span>
-                    {after}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

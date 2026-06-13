@@ -30,6 +30,7 @@ interface EditorState {
   newUntitled: () => string;
   splitEditor: () => void;
   closeSplit: (splitId: string) => void;
+  setActiveSplitIndex: (idx: number) => void;
   getActiveTab: () => EditorTab | undefined;
   getTabByPath: (path: string) => EditorTab | undefined;
 }
@@ -179,6 +180,16 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     set({
       splits,
       activeSplitIndex: Math.min(state.activeSplitIndex, splits.length - 1),
+    });
+  },
+
+  setActiveSplitIndex: (idx) => {
+    const state = get();
+    const clamped = Math.max(0, Math.min(idx, state.splits.length - 1));
+    const split = state.splits[clamped];
+    set({
+      activeSplitIndex: clamped,
+      activeTabId: split?.activeTabId ?? state.activeTabId,
     });
   },
 

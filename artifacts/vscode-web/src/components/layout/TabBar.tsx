@@ -2,9 +2,16 @@ import { useEditorStore } from '@/store/editorStore';
 import { CloseIcon, AddIcon } from '@/components/icons';
 
 export function TabBar() {
-  const { tabs, activeTabId, setActiveTab, closeTab, newUntitled } = useEditorStore();
+  const { tabs, splits, activeSplitIndex, activeTabId, setActiveTab, closeTab, newUntitled } = useEditorStore();
 
-  if (tabs.length === 0) return null;
+  // Show tabs for the active split only
+  const activeSplit = splits[activeSplitIndex];
+  const splitTabIds = activeSplit?.tabIds ?? [];
+  const visibleTabs = splitTabIds.length > 0
+    ? tabs.filter((t) => splitTabIds.includes(t.id))
+    : tabs;
+
+  if (visibleTabs.length === 0) return null;
 
   return (
     <div
@@ -21,8 +28,8 @@ export function TabBar() {
         scrollbarWidth: 'thin',
       }}
     >
-      {tabs.map((tab) => {
-        const isActive = tab.id === activeTabId;
+      {visibleTabs.map((tab) => {
+        const isActive = tab.id === (activeSplit?.activeTabId ?? activeTabId);
         return (
           <div
             key={tab.id}
@@ -45,7 +52,6 @@ export function TabBar() {
               gap: 5,
             }}
           >
-            {/* Dirty indicator */}
             <span
               style={{
                 fontSize: 10,
@@ -60,8 +66,6 @@ export function TabBar() {
             >
               {tab.isDirty ? '●' : ''}
             </span>
-
-            {/* Filename */}
             <span
               style={{
                 flex: 1,
@@ -74,35 +78,16 @@ export function TabBar() {
             >
               {tab.name}
             </span>
-
-            {/* Close button */}
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                closeTab(tab.id);
-              }}
+              onClick={(e) => { e.stopPropagation(); closeTab(tab.id); }}
               style={{
-                width: 16,
-                height: 16,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'transparent',
-                border: 'none',
-                color: 'inherit',
-                cursor: 'pointer',
-                borderRadius: 3,
-                flexShrink: 0,
-                opacity: 0.6,
+                width: 16, height: 16,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'transparent', border: 'none', color: 'inherit',
+                cursor: 'pointer', borderRadius: 3, flexShrink: 0, opacity: 0.6,
               }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--vscode-button-bg)';
-                e.currentTarget.style.opacity = '1';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.opacity = '0.6';
-              }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--vscode-button-bg)'; e.currentTarget.style.opacity = '1'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.opacity = '0.6'; }}
             >
               <CloseIcon size={14} />
             </button>
@@ -110,22 +95,14 @@ export function TabBar() {
         );
       })}
 
-      {/* New file button */}
       <button
         onClick={newUntitled}
-        title="New File"
+        title="New File (Ctrl+N)"
         style={{
-          width: 35,
-          height: 35,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'transparent',
-          border: 'none',
-          color: 'var(--vscode-fg)',
-          cursor: 'pointer',
-          flexShrink: 0,
-          opacity: 0.6,
+          width: 35, height: 35,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'transparent', border: 'none', color: 'var(--vscode-fg)',
+          cursor: 'pointer', flexShrink: 0, opacity: 0.6,
         }}
         onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
         onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.6')}

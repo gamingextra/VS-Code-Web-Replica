@@ -19,8 +19,11 @@ interface FileSystemState {
   selectedNodeId: string | null;
   createFile: (parentId: string, name: string, content?: string) => void;
   createFolder: (parentId: string, name: string) => void;
+  createFileAtRoot: (name: string, content?: string) => void;
+  createFolderAtRoot: (name: string) => void;
   deleteNode: (id: string) => void;
   renameNode: (id: string, newName: string) => void;
+  updateNodeContent: (id: string, content: string) => void;
   toggleFolder: (id: string) => void;
   moveNode: (id: string, newParentId: string) => void;
   setActiveFile: (path: string | null) => void;
@@ -107,6 +110,24 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => ({
       parentId,
     };
     set({ root: insertIntoFolder(get().root, parentId, newNode) });
+  },
+
+  createFileAtRoot: (name, content = '') => {
+    const newNode: FileNode = {
+      id: generateId(), name, type: 'file', path: name, content, parentId: null,
+    };
+    set({ root: [...get().root, newNode] });
+  },
+
+  createFolderAtRoot: (name) => {
+    const newNode: FileNode = {
+      id: generateId(), name, type: 'folder', path: name, children: [], isOpen: false, parentId: null,
+    };
+    set({ root: [...get().root, newNode] });
+  },
+
+  updateNodeContent: (id, content) => {
+    set({ root: updateNodeRecursive(get().root, id, (n) => ({ ...n, content })) });
   },
 
   createFolder: (parentId, name) => {
