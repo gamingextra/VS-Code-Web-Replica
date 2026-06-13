@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Toaster, toast } from 'sonner';
 import { TitleBar } from '@/components/layout/TitleBar';
 import { ActivityBar } from '@/components/layout/ActivityBar';
+import { VIEW_ITEMS } from '@/components/layout/ActivityBar';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TabBar } from '@/components/layout/TabBar';
 import { EditorArea } from '@/components/layout/EditorArea';
@@ -26,6 +27,7 @@ import { createDemoWorkspace } from '@/data/demoWorkspace';
 import { useBreakpoint } from '@/hooks/useWindowSize';
 
 function KeyboardShortcutsPanel({ onClose }: { onClose: () => void }) {
+  const { isMobile } = useBreakpoint();
   const KEYBOARD_SHORTCUTS = [
     { category: 'General', keys: 'Ctrl+Shift+P', label: 'Command Palette' },
     { category: 'General', keys: 'Ctrl+P', label: 'Quick Open (Go to File)' },
@@ -55,11 +57,11 @@ function KeyboardShortcutsPanel({ onClose }: { onClose: () => void }) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9000, backgroundColor: 'var(--vscode-editor-bg)', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', alignItems: 'center', padding: '10px 20px', borderBottom: '1px solid var(--vscode-border)', flexShrink: 0, backgroundColor: 'var(--vscode-sidebar-bg)', gap: 12 }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--vscode-fg)' }}>Keyboard Shortcuts</span>
+      <div style={{ display: 'flex', alignItems: 'center', padding: isMobile ? '8px 12px' : '10px 20px', borderBottom: '1px solid var(--vscode-border)', flexShrink: 0, backgroundColor: 'var(--vscode-sidebar-bg)', gap: 12 }}>
+        <span style={{ fontSize: isMobile ? 14 : 13, fontWeight: 600, color: 'var(--vscode-fg)' }}>Keyboard Shortcuts</span>
         <button onClick={onClose} className="px-3 py-1 text-[12px] bg-[var(--vscode-button-bg)] text-white rounded hover:opacity-90 ml-auto">Close</button>
       </div>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: isMobile ? '12px' : '16px 20px', WebkitOverflowScrolling: 'touch' }}>
         {categories.map((cat) => (
           <div key={cat} className="mb-6">
             <div className="text-[11px] font-bold uppercase tracking-wider opacity-50 mb-2">{cat}</div>
@@ -67,8 +69,8 @@ function KeyboardShortcutsPanel({ onClose }: { onClose: () => void }) {
               <tbody>
                 {KEYBOARD_SHORTCUTS.filter((s) => s.category === cat).map((s) => (
                   <tr key={s.keys} style={{ borderBottom: '1px solid var(--vscode-border)' }}>
-                    <td style={{ padding: '6px 0', fontSize: 13, color: 'var(--vscode-fg)', width: '60%' }}>{s.label}</td>
-                    <td style={{ padding: '6px 0', fontSize: 12, color: 'var(--vscode-fg)', opacity: 0.7, textAlign: 'right', fontFamily: 'monospace' }}>{s.keys}</td>
+                    <td style={{ padding: isMobile ? '8px 0' : '6px 0', fontSize: isMobile ? 13 : 13, color: 'var(--vscode-fg)', width: '60%' }}>{s.label}</td>
+                    <td style={{ padding: isMobile ? '8px 0' : '6px 0', fontSize: 12, color: 'var(--vscode-fg)', opacity: 0.7, textAlign: 'right', fontFamily: 'monospace' }}>{s.keys}</td>
                   </tr>
                 ))}
               </tbody>
@@ -76,6 +78,78 @@ function KeyboardShortcutsPanel({ onClose }: { onClose: () => void }) {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+// Mobile bottom navigation bar (replaces ActivityBar on mobile)
+function MobileBottomNav() {
+  const { activeView, isVisible, setView, toggle } = useSidebarStore();
+
+  const handleNavClick = (view: string) => {
+    if (isVisible && activeView === view) {
+      // Toggle off if same view is active
+      toggle();
+    } else {
+      setView(view as 'explorer' | 'search' | 'scm' | 'run' | 'extensions');
+      if (!isVisible) toggle();
+    }
+  };
+
+  return (
+    <div
+      className="safe-area-bottom"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-around',
+        height: 48,
+        backgroundColor: 'var(--vscode-activityBar-bg)',
+        borderTop: '1px solid var(--vscode-border)',
+        flexShrink: 0,
+        userSelect: 'none',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+      }}
+    >
+      {VIEW_ITEMS.map(({ view, icon: Icon, mobileLabel }) => {
+        const isActive = isVisible && activeView === view;
+        return (
+          <button
+            key={view}
+            onClick={() => handleNavClick(view)}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 2,
+              background: 'transparent',
+              border: 'none',
+              color: isActive ? 'var(--vscode-activityBar-active)' : '#858585',
+              cursor: 'pointer',
+              flex: 1,
+              height: 48,
+              position: 'relative',
+            }}
+          >
+            {isActive && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: '25%',
+                  right: '25%',
+                  height: 2,
+                  backgroundColor: 'var(--vscode-activityBar-activeBorder)',
+                  borderRadius: '0 0 1px 1px',
+                }}
+              />
+            )}
+            <Icon size={20} />
+            <span style={{ fontSize: 9, fontWeight: 500 }}>{mobileLabel}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -117,7 +191,7 @@ export default function Home() {
     }
   }, [workspaceTrusted]);
 
-  // Schedule update notification (like code-server's 6-hour check)
+  // Schedule update notification
   useEffect(() => {
     const timer = setTimeout(() => {
       addNotification({
@@ -129,7 +203,7 @@ export default function Home() {
           { label: 'Dismiss', action: () => {} },
         ],
       });
-    }, 30000); // Show after 30 seconds for demo
+    }, 30000);
     return () => clearTimeout(timer);
   }, [addNotification]);
 
@@ -167,7 +241,7 @@ export default function Home() {
 
   useKeyboardShortcuts();
 
-  // Zen mode keyboard shortcut (Ctrl+K Z)
+  // Zen mode keyboard shortcut
   useEffect(() => {
     let lastK = false;
     const handler = (e: KeyboardEvent) => {
@@ -250,7 +324,9 @@ export default function Home() {
         </div>
       </div>
 
-      {!zenMode && <StatusBar />}
+      {!zenMode && !isMobile && <StatusBar />}
+      {!zenMode && isMobile && <StatusBar />}
+      {!zenMode && isMobile && <MobileBottomNav />}
 
       <CommandPalette />
       {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
@@ -269,13 +345,13 @@ export default function Home() {
         <div
           style={{
             position: 'fixed', bottom: 8, left: '50%', transform: 'translateX(-50%)',
-            backgroundColor: 'rgba(0,0,0,0.6)', color: '#ccc', fontSize: 11,
+            backgroundColor: 'rgba(0,0,0,0.6)', color: '#ccc', fontSize: isMobile ? 12 : 11,
             padding: '4px 12px', borderRadius: 12, zIndex: 100, cursor: 'pointer',
             backdropFilter: 'blur(4px)',
           }}
           onClick={() => settings.toggleZenMode()}
         >
-          Zen Mode — Press Ctrl+K Z or click to exit
+          Zen Mode — Press Ctrl+K Z or tap to exit
         </div>
       )}
 

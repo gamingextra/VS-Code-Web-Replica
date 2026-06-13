@@ -2,6 +2,7 @@
 
 import { useSidebarStore } from '@/store/sidebarStore';
 import type { SidebarView } from '@/store/sidebarStore';
+import { useBreakpoint } from '@/hooks/useWindowSize';
 import {
   Files,
   Search,
@@ -12,16 +13,20 @@ import {
   Settings,
 } from 'lucide-react';
 
-const VIEW_ITEMS: { view: SidebarView; icon: React.FC<{ size?: number; className?: string }>; tooltip: string }[] = [
-  { view: 'explorer', icon: Files, tooltip: 'Explorer (Ctrl+Shift+E)' },
-  { view: 'search', icon: Search, tooltip: 'Search (Ctrl+Shift+F)' },
-  { view: 'scm', icon: GitBranch, tooltip: 'Source Control (Ctrl+Shift+G)' },
-  { view: 'run', icon: Play, tooltip: 'Run and Debug (Ctrl+Shift+D)' },
-  { view: 'extensions', icon: Puzzle, tooltip: 'Extensions (Ctrl+Shift+X)' },
+const VIEW_ITEMS: { view: SidebarView; icon: React.FC<{ size?: number; className?: string }>; tooltip: string; mobileLabel: string }[] = [
+  { view: 'explorer', icon: Files, tooltip: 'Explorer (Ctrl+Shift+E)', mobileLabel: 'Files' },
+  { view: 'search', icon: Search, tooltip: 'Search (Ctrl+Shift+F)', mobileLabel: 'Search' },
+  { view: 'scm', icon: GitBranch, tooltip: 'Source Control (Ctrl+Shift+G)', mobileLabel: 'Git' },
+  { view: 'run', icon: Play, tooltip: 'Run and Debug (Ctrl+Shift+D)', mobileLabel: 'Run' },
+  { view: 'extensions', icon: Puzzle, tooltip: 'Extensions (Ctrl+Shift+X)', mobileLabel: 'Ext' },
 ];
 
 export function ActivityBar() {
   const { activeView, isVisible, setView } = useSidebarStore();
+  const { isMobile } = useBreakpoint();
+
+  // On mobile, ActivityBar is hidden (icons move to bottom nav in page.tsx)
+  if (isMobile) return null;
 
   const handleClick = (view: SidebarView) => {
     setView(view);
@@ -128,3 +133,6 @@ export function ActivityBar() {
     </div>
   );
 }
+
+// Export VIEW_ITEMS for the mobile bottom nav in page.tsx
+export { VIEW_ITEMS };

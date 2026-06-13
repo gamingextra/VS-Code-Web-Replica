@@ -1,10 +1,12 @@
 'use client';
 
 import { useEditorStore } from '@/store/editorStore';
+import { useBreakpoint } from '@/hooks/useWindowSize';
 import { CloseIcon, AddIcon } from '@/components/icons';
 
 export function TabBar() {
   const { tabs, splits, activeSplitIndex, activeTabId, setActiveTab, closeTab, newUntitled } = useEditorStore();
+  const { isMobile, isTablet } = useBreakpoint();
 
   const activeSplit = splits[activeSplitIndex];
   const splitTabIds = activeSplit?.tabIds ?? [];
@@ -14,11 +16,15 @@ export function TabBar() {
 
   if (visibleTabs.length === 0) return null;
 
+  const tabMaxWidth = isMobile ? 120 : isTablet ? 150 : 180;
+  const tabMinWidth = isMobile ? 50 : 60;
+  const tabHeight = isMobile ? 38 : 35;
+
   return (
     <div
       className="tabs-scroll"
       style={{
-        height: 35,
+        height: tabHeight,
         backgroundColor: 'var(--vscode-tab-bg)',
         display: 'flex',
         alignItems: 'flex-end',
@@ -27,6 +33,7 @@ export function TabBar() {
         flexShrink: 0,
         userSelect: 'none',
         scrollbarWidth: 'thin',
+        WebkitOverflowScrolling: 'touch',
       }}
     >
       {visibleTabs.map((tab) => {
@@ -38,17 +45,17 @@ export function TabBar() {
             style={{
               display: 'flex',
               alignItems: 'center',
-              height: 35,
-              padding: '0 6px 0 10px',
+              height: tabHeight,
+              padding: isMobile ? '0 8px 0 10px' : '0 6px 0 10px',
               backgroundColor: isActive ? 'var(--vscode-tab-activeBg)' : 'var(--vscode-tab-bg)',
               borderRight: '1px solid var(--vscode-tab-border)',
               borderTop: isActive ? '1px solid var(--vscode-focusBorder)' : '1px solid transparent',
               color: isActive ? 'var(--vscode-editor-fg)' : 'var(--vscode-fg)',
-              fontSize: 13,
+              fontSize: isMobile ? 12 : 13,
               fontWeight: isActive ? 500 : 400,
               cursor: 'pointer',
-              maxWidth: 180,
-              minWidth: 60,
+              maxWidth: tabMaxWidth,
+              minWidth: tabMinWidth,
               flexShrink: 0,
               gap: 5,
             }}
@@ -82,15 +89,23 @@ export function TabBar() {
             <button
               onClick={(e) => { e.stopPropagation(); closeTab(tab.id); }}
               style={{
-                width: 16, height: 16,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: 'transparent', border: 'none', color: 'inherit',
-                cursor: 'pointer', borderRadius: 3, flexShrink: 0, opacity: 0.6,
+                width: isMobile ? 24 : 16,
+                height: isMobile ? 24 : 16,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'transparent',
+                border: 'none',
+                color: 'inherit',
+                cursor: 'pointer',
+                borderRadius: 3,
+                flexShrink: 0,
+                opacity: 0.6,
               }}
               onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--vscode-button-bg)'; e.currentTarget.style.opacity = '1'; }}
               onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.opacity = '0.6'; }}
             >
-              <CloseIcon size={14} />
+              <CloseIcon size={isMobile ? 16 : 14} />
             </button>
           </div>
         );
@@ -100,10 +115,17 @@ export function TabBar() {
         onClick={newUntitled}
         title="New File (Ctrl+N)"
         style={{
-          width: 35, height: 35,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'transparent', border: 'none', color: 'var(--vscode-fg)',
-          cursor: 'pointer', flexShrink: 0, opacity: 0.6,
+          width: tabHeight,
+          height: tabHeight,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'transparent',
+          border: 'none',
+          color: 'var(--vscode-fg)',
+          cursor: 'pointer',
+          flexShrink: 0,
+          opacity: 0.6,
         }}
         onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
         onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.6')}

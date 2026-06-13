@@ -19,6 +19,9 @@ export function useBreakpoint() {
   const isMobile = width < 640;
   const isTablet = width >= 640 && width < 1024;
   const isDesktop = width >= 1024;
+  const isSmallMobile = width < 380;
+  const isLandscape = width > height;
+  const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
 
-  return { width, height, isMobile, isTablet, isDesktop };
+  return { width, height, isMobile, isTablet, isDesktop, isSmallMobile, isLandscape, isTouchDevice };
 }

@@ -5,7 +5,7 @@ import { useStatusBarStore } from '@/store/statusBarStore';
 import { useSidebarStore } from '@/store/sidebarStore';
 import { useNotificationStore } from '@/store/notificationStore';
 import { GitBranchIcon, WarningIcon, ErrorIcon, BellIcon, CheckIcon } from '@/components/icons';
-import { useWindowSize } from '@/hooks/useWindowSize';
+import { useBreakpoint } from '@/hooks/useWindowSize';
 
 const BRANCHES = ['main', 'develop', 'feature/auth'];
 const INDENTS = ['Spaces: 2', 'Spaces: 4', 'Spaces: 8', 'Tab'];
@@ -66,8 +66,11 @@ function PopoverPicker({
               borderRadius: 4,
               boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
               zIndex: 10000,
-              minWidth: 140,
+              minWidth: 120,
+              maxWidth: '80vw',
               padding: '4px 0',
+              maxHeight: '50vh',
+              overflowY: 'auto',
             }}
           >
             {options.map((opt) => (
@@ -83,6 +86,7 @@ function PopoverPicker({
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   backgroundColor: opt === value ? 'var(--vscode-list-active)' : 'transparent',
+                  whiteSpace: 'nowrap',
                 }}
                 onMouseEnter={(e) => { if (opt !== value) e.currentTarget.style.backgroundColor = 'var(--vscode-list-hover)'; }}
                 onMouseLeave={(e) => { if (opt !== value) e.currentTarget.style.backgroundColor = 'transparent'; }}
@@ -110,14 +114,12 @@ export function StatusBar() {
     indentation,
   } = useStatusBarStore();
   const sidebar = useSidebarStore();
-  const { width } = useWindowSize();
+  const { width, isMobile } = useBreakpoint();
   const { unreadCount, toggleCenter } = useNotificationStore();
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'reconnecting' | 'disconnected'>('connected');
 
-  // Simulate connection status monitoring
   useEffect(() => {
     const interval = setInterval(() => {
-      // Very rarely show "reconnecting" for a few seconds
       if (Math.random() < 0.005) {
         setConnectionStatus('reconnecting');
         setTimeout(() => setConnectionStatus('connected'), 2000);
@@ -128,16 +130,21 @@ export function StatusBar() {
 
   const hasProblems = problems.errors > 0 || problems.warnings > 0;
 
-  const showCursorPos = width >= 480;
+  // Progressive visibility based on screen width
+  const showLanguage = width >= (isMobile ? 380 : 420);
+  const showCursorPos = width >= (isMobile ? 500 : 480);
   const showIndent = width >= 580;
   const showEncoding = width >= 680;
   const showEol = width >= 760;
-  const showLanguage = width >= 420;
+  const showBranchName = width >= (isMobile ? 360 : 300);
+  const showRemoteText = width >= 500;
+
+  const barHeight = isMobile ? 24 : 22;
 
   return (
     <div
       style={{
-        height: 22,
+        height: barHeight,
         backgroundColor: connectionStatus === 'connected'
           ? 'var(--vscode-statusBar-bg)'
           : '#8b5a00',
@@ -146,7 +153,7 @@ export function StatusBar() {
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 4px',
-        fontSize: 12,
+        fontSize: isMobile ? 11 : 12,
         fontWeight: 400,
         flexShrink: 0,
         userSelect: 'none',
@@ -154,6 +161,7 @@ export function StatusBar() {
         minWidth: 0,
         transition: 'background-color 0.3s',
       }}
+      className={isMobile ? 'safe-area-bottom' : undefined}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 0, overflow: 'hidden', flexShrink: 0 }}>
         {/* Remote Connection Indicator */}
@@ -170,12 +178,12 @@ export function StatusBar() {
             alignItems: 'center',
             gap: 4,
             padding: '0 6px',
-            height: 22,
+            height: barHeight,
             background: 'transparent',
             border: 'none',
             color: 'inherit',
             cursor: 'pointer',
-            fontSize: 12,
+            fontSize: isMobile ? 11 : 12,
             fontWeight: 600,
             fontFamily: 'inherit',
             whiteSpace: 'nowrap',
@@ -196,31 +204,27 @@ export function StatusBar() {
                 animation: connectionStatus === 'reconnecting' ? 'pulse 1s infinite' : 'none',
               }}
             />
-            {connectionStatus === 'connected' && 'Remote'}
-            {connectionStatus === 'reconnecting' && 'Reconnecting'}
-            {connectionStatus === 'disconnected' && 'Disconnected'}
+            {showRemoteText && connectionStatus === 'connected' && 'Remote'}
+            {showRemoteText && connectionStatus === 'reconnecting' && 'Reconnecting'}
+            {connectionStatus === 'disconnected' && '✕'}
           </span>
         </button>
 
-        <PopoverPicker
-          trigger={<><GitBranchIcon size={14} /><span style={{ marginLeft: 3 }}>{branch}</span></>}
-          options={BRANCHES}
-          value={branch}
-          onChange={(v) => useStatusBarStore.setState({ branch: v })}
-        />
-
-        <StatusBarItem>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M2.5 7.5A5.5 5.5 0 018 2.5V0l4 3-4 3V4.5a3.5 3.5 0 103.5 3.5h2A5.5 5.5 0 012.5 7.5z" />
-          </svg>
-        </StatusBarItem>
+        {showBranchName && (
+          <PopoverPicker
+            trigger={<><GitBranchIcon size={14} /><span style={{ marginLeft: 3 }}>{branch}</span></>}
+            options={BRANCHES}
+            value={branch}
+            onChange={(v) => useStatusBarStore.setState({ branch: v })}
+          />
+        )}
 
         <button
           onClick={() => { sidebar.setView('explorer'); if (!sidebar.isVisible) sidebar.toggle(); }}
           style={{
             display: 'flex', alignItems: 'center', gap: 4, padding: '0 6px',
-            height: 22, background: 'transparent', border: 'none',
-            color: 'inherit', cursor: 'pointer', fontSize: 12, fontWeight: 400,
+            height: barHeight, background: 'transparent', border: 'none',
+            color: 'inherit', cursor: 'pointer', fontSize: isMobile ? 11 : 12, fontWeight: 400,
             whiteSpace: 'nowrap',
           }}
           onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.12)'; }}
@@ -239,7 +243,7 @@ export function StatusBar() {
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 0, flexShrink: 0 }}>
         {showCursorPos && (
-          <StatusBarItem>
+          <StatusBarItem fontSize={isMobile ? 11 : 12}>
             <span>Ln {line}, Col {col}</span>
           </StatusBarItem>
         )}
@@ -280,7 +284,7 @@ export function StatusBar() {
           />
         )}
 
-        {/* Notification Bell with unread badge */}
+        {/* Notification Bell */}
         <button
           onClick={toggleCenter}
           title={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
@@ -289,7 +293,7 @@ export function StatusBar() {
             alignItems: 'center',
             justifyContent: 'center',
             padding: '0 6px',
-            height: 22,
+            height: barHeight,
             background: 'transparent',
             border: 'none',
             color: 'inherit',
@@ -336,7 +340,7 @@ export function StatusBar() {
   );
 }
 
-function StatusBarItem({ children }: { children: React.ReactNode }) {
+function StatusBarItem({ children, fontSize = 12 }: { children: React.ReactNode; fontSize?: number }) {
   return (
     <button
       style={{
@@ -349,7 +353,7 @@ function StatusBarItem({ children }: { children: React.ReactNode }) {
         border: 'none',
         color: 'inherit',
         cursor: 'pointer',
-        fontSize: 12,
+        fontSize,
         fontWeight: 400,
         fontFamily: 'inherit',
         whiteSpace: 'nowrap',

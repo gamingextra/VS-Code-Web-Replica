@@ -6,6 +6,7 @@ import type * as monaco from 'monaco-editor';
 import { useEditorStore, type EditorSplit } from '@/store/editorStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useThemeStore } from '@/store/themeStore';
+import { useBreakpoint } from '@/hooks/useWindowSize';
 import { WelcomePage } from './WelcomePage';
 import { CloseIcon } from '@/components/icons';
 
@@ -80,32 +81,40 @@ const THEME_NAME_MAP: Record<string, string> = {
 export const editorRefs: Map<string, monaco.editor.IStandaloneCodeEditor | null> = new Map();
 
 function Breadcrumbs({ path }: { path: string }) {
+  const { isMobile } = useBreakpoint();
   const segments = path.split('/').filter(Boolean);
   if (segments.length === 0) return null;
+
+  // On mobile, show only last 2 segments to save space
+  const visibleSegments = isMobile && segments.length > 2
+    ? ['...', ...segments.slice(-2)]
+    : segments;
+
   return (
     <div
       style={{
         display: 'flex',
         alignItems: 'center',
-        padding: '2px 12px',
+        padding: isMobile ? '4px 8px' : '2px 12px',
         backgroundColor: 'var(--vscode-editor-bg)',
         borderBottom: '1px solid var(--vscode-border)',
         flexShrink: 0,
         flexWrap: 'nowrap',
         overflow: 'hidden',
         gap: 2,
-        height: 22,
+        height: isMobile ? 26 : 22,
+        minHeight: isMobile ? 26 : 22,
       }}
     >
-      {segments.map((seg, i) => (
-        <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 2, minWidth: 0, flexShrink: i < segments.length - 1 ? 1 : 0 }}>
+      {visibleSegments.map((seg, i) => (
+        <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 2, minWidth: 0, flexShrink: i < visibleSegments.length - 1 ? 1 : 0 }}>
           {i > 0 && <span style={{ fontSize: 11, opacity: 0.4, flexShrink: 0 }}>›</span>}
           <span
             style={{
-              fontSize: 12,
+              fontSize: isMobile ? 11 : 12,
               color: 'var(--vscode-fg)',
-              opacity: i === segments.length - 1 ? 1 : 0.6,
-              fontWeight: i === segments.length - 1 ? 500 : 400,
+              opacity: i === visibleSegments.length - 1 ? 1 : 0.6,
+              fontWeight: i === visibleSegments.length - 1 ? 500 : 400,
               cursor: 'pointer',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
@@ -132,6 +141,7 @@ function SplitPane({ split, splitIndex, isActive, showDivider, showClose }: Spli
   const { tabs, updateTabContent, markClean, setActiveSplitIndex, closeSplit, setActiveTab } = useEditorStore();
   const settings = useSettingsStore();
   const { theme } = useThemeStore();
+  const { isMobile } = useBreakpoint();
   const monacoRef = useRef<typeof monaco | null>(null);
   const localEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const themesRegistered = useRef(false);
@@ -241,7 +251,7 @@ function SplitPane({ split, splitIndex, isActive, showDivider, showClose }: Spli
           style={{
             display: 'flex',
             alignItems: 'flex-end',
-            height: 30,
+            height: isMobile ? 34 : 30,
             backgroundColor: 'var(--vscode-tab-bg)',
             borderBottom: '1px solid var(--vscode-tab-border)',
             overflowX: 'auto',
@@ -256,11 +266,11 @@ function SplitPane({ split, splitIndex, isActive, showDivider, showClose }: Spli
                 key={tab.id}
                 onClick={(e) => { e.stopPropagation(); setActiveSplitIndex(splitIndex); setActiveTab(tab.id); }}
                 style={{
-                  display: 'flex', alignItems: 'center', height: 30, padding: '0 6px 0 10px',
+                  display: 'flex', alignItems: 'center', height: isMobile ? 34 : 30, padding: '0 6px 0 10px',
                   backgroundColor: isTabActive ? 'var(--vscode-tab-activeBg)' : 'transparent',
                   borderTop: isTabActive ? '1px solid var(--vscode-focusBorder)' : '1px solid transparent',
                   color: isTabActive ? 'var(--vscode-editor-fg)' : 'var(--vscode-fg)',
-                  fontSize: 12, cursor: 'pointer', maxWidth: 140, minWidth: 50, flexShrink: 0, gap: 4,
+                  fontSize: isMobile ? 11 : 12, cursor: 'pointer', maxWidth: isMobile ? 110 : 140, minWidth: isMobile ? 40 : 50, flexShrink: 0, gap: 4,
                   borderRight: '1px solid var(--vscode-tab-border)',
                 }}
               >
@@ -275,7 +285,7 @@ function SplitPane({ split, splitIndex, isActive, showDivider, showClose }: Spli
             onClick={(e) => { e.stopPropagation(); closeSplit(split.id); }}
             title="Close Editor Group"
             style={{
-              marginLeft: 'auto', width: 28, height: 30, flexShrink: 0,
+              marginLeft: 'auto', width: isMobile ? 32 : 28, height: isMobile ? 34 : 30, flexShrink: 0,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: 'transparent', border: 'none', color: 'var(--vscode-fg)',
               cursor: 'pointer', opacity: 0.5,

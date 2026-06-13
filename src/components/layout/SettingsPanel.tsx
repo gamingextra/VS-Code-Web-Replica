@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useThemeStore, type Theme } from '@/store/themeStore';
+import { useBreakpoint } from '@/hooks/useWindowSize';
 import { CloseIcon } from '@/components/icons';
+import { Menu, ChevronLeft } from 'lucide-react';
 
 interface Props {
   onClose: () => void;
@@ -123,8 +125,10 @@ export function SettingsPanel({ onClose }: Props) {
   const [activeCategory, setActiveCategory] = useState('commonly-used');
   const [search, setSearch] = useState('');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['text-editor', 'workbench']));
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const s = useSettingsStore();
   const theme = useThemeStore();
+  const { isMobile } = useBreakpoint();
 
   const toggleCategory = (id: string) => { setExpandedCategories((prev) => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; }); };
 
@@ -148,7 +152,15 @@ export function SettingsPanel({ onClose }: Props) {
       const hasChildren = cat.children && cat.children.length > 0;
       return (
         <div key={cat.id}>
-          <div onClick={() => { if (hasChildren) toggleCategory(cat.id); setActiveCategory(cat.id); }} className={`flex items-center gap-1 py-1 px-3 cursor-pointer text-[12px] rounded ${isActive ? 'bg-[var(--vscode-list-active)] text-[var(--vscode-fg)]' : 'hover:bg-[var(--vscode-list-hover)] text-[var(--vscode-fg)] opacity-70 hover:opacity-100'}`} style={{ paddingLeft: 12 + depth * 12 }}>
+          <div
+            onClick={() => {
+              if (hasChildren) toggleCategory(cat.id);
+              setActiveCategory(cat.id);
+              if (isMobile) setShowMobileSidebar(false);
+            }}
+            className={`flex items-center gap-1 py-1 px-3 cursor-pointer text-[12px] rounded ${isActive ? 'bg-[var(--vscode-list-active)] text-[var(--vscode-fg)]' : 'hover:bg-[var(--vscode-list-hover)] text-[var(--vscode-fg)] opacity-70 hover:opacity-100'}`}
+            style={{ paddingLeft: 12 + depth * 12, minHeight: isMobile ? 36 : undefined }}
+          >
             {hasChildren && <span className="w-3 h-3 flex items-center justify-center opacity-60">{isExpanded ? '▾' : '▸'}</span>}
             <span>{cat.label}</span>
           </div>
@@ -158,6 +170,71 @@ export function SettingsPanel({ onClose }: Props) {
     });
   }
 
+  // Mobile: full-screen settings with a slide-in category sidebar
+  if (isMobile) {
+    return (
+      <div style={{ position: 'fixed', inset: 0, zIndex: 9000, backgroundColor: 'var(--vscode-editor-bg)', display: 'flex', flexDirection: 'column' }}>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', padding: '8px 12px', borderBottom: '1px solid var(--vscode-border)', flexShrink: 0, gap: 8, backgroundColor: 'var(--vscode-sidebar-bg)' }}>
+          <button onClick={() => setShowMobileSidebar(!showMobileSidebar)} style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', color: 'var(--vscode-fg)', cursor: 'pointer', borderRadius: 4 }}>
+            <Menu size={20} />
+          </button>
+          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--vscode-fg)' }}>Settings</span>
+          <div style={{ flex: 1 }}>
+            <input type="text" placeholder="Search settings" value={search} onChange={(e) => setSearch(e.target.value)} className="w-full bg-[var(--vscode-input-bg)] border border-[var(--vscode-input-border)] text-[var(--vscode-fg)] text-[12px] px-3 py-1.5 rounded outline-none focus:border-[var(--vscode-focusBorder)] placeholder:opacity-40" />
+          </div>
+          <button onClick={onClose} style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', color: 'var(--vscode-fg)', cursor: 'pointer', borderRadius: 4, opacity: 0.7 }}>
+            <CloseIcon size={18} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', backgroundColor: 'var(--vscode-editor-bg)', WebkitOverflowScrolling: 'touch' }}>
+          {renderContent()}
+        </div>
+
+        {/* Mobile category sidebar overlay */}
+        {showMobileSidebar && (
+          <>
+            <div onClick={() => setShowMobileSidebar(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10 }} />
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              bottom: 0,
+              width: '75vw',
+              maxWidth: 280,
+              backgroundColor: 'var(--vscode-sidebar-bg)',
+              borderRight: '1px solid var(--vscode-border)',
+              zIndex: 20,
+              display: 'flex',
+              flexDirection: 'column',
+              animation: 'slideInLeft 0.2s ease-out',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid var(--vscode-border)' }}>
+                <button onClick={() => setShowMobileSidebar(false)} style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', color: 'var(--vscode-fg)', cursor: 'pointer', borderRadius: 4 }}>
+                  <ChevronLeft size={20} />
+                </button>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--vscode-fg)', marginLeft: 8 }}>Categories</span>
+              </div>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0', WebkitOverflowScrolling: 'touch' }}>
+                {renderCategoryTree(CATEGORIES)}
+              </div>
+            </div>
+          </>
+        )}
+
+        <style>{`
+          @keyframes slideInLeft {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // Desktop: two-column settings
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9000, backgroundColor: 'var(--vscode-editor-bg)', display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', alignItems: 'center', padding: '8px 16px', borderBottom: '1px solid var(--vscode-border)', flexShrink: 0, gap: 12, backgroundColor: 'var(--vscode-sidebar-bg)' }}>

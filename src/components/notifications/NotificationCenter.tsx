@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useNotificationStore, type Notification } from '@/store/notificationStore';
+import { useBreakpoint } from '@/hooks/useWindowSize';
 
 function NotificationItem({
   notification,
@@ -96,7 +97,7 @@ function NotificationItem({
           >
             {notification.message}
           </p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 10, color: 'var(--vscode-fg)', opacity: 0.4 }}>
               {timeAgo}
             </span>
@@ -116,6 +117,7 @@ function NotificationItem({
                   borderRadius: 3,
                   cursor: 'pointer',
                   fontWeight: 500,
+                  minHeight: 24,
                 }}
               >
                 {action.label}
@@ -137,6 +139,11 @@ function NotificationItem({
             padding: 2,
             flexShrink: 0,
             fontSize: 14,
+            width: 28,
+            height: 28,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
           onMouseEnter={(e) => {
             (e.currentTarget as HTMLButtonElement).style.opacity = '0.8';
@@ -176,6 +183,7 @@ export function NotificationCenter() {
     setShowCenter,
   } = useNotificationStore();
   const panelRef = useRef<HTMLDivElement>(null);
+  const { isMobile, width: vw } = useBreakpoint();
 
   useEffect(() => {
     if (!showCenter) return;
@@ -195,15 +203,20 @@ export function NotificationCenter() {
 
   if (!showCenter) return null;
 
+  // Responsive: full-width on small mobile, otherwise capped
+  const panelWidth = isMobile ? Math.min(vw - 16, 380) : 380;
+  const panelMaxHeight = isMobile ? Math.floor(window.innerHeight * 0.6) : 500;
+
   return (
     <div
       ref={panelRef}
       style={{
         position: 'fixed',
-        bottom: 24,
-        right: 8,
-        width: 380,
-        maxHeight: 500,
+        bottom: isMobile ? 60 : 24,
+        right: isMobile ? 8 : 8,
+        width: panelWidth,
+        maxWidth: 'calc(100vw - 16px)',
+        maxHeight: panelMaxHeight,
         backgroundColor: 'var(--vscode-dropdown-bg)',
         border: '1px solid var(--vscode-border)',
         borderRadius: 6,
@@ -241,6 +254,7 @@ export function NotificationCenter() {
                 color: 'var(--vscode-fg)',
                 cursor: 'pointer',
                 opacity: 0.7,
+                minHeight: 24,
               }}
             >
               Mark All Read
@@ -258,6 +272,7 @@ export function NotificationCenter() {
                 color: 'var(--vscode-fg)',
                 cursor: 'pointer',
                 opacity: 0.7,
+                minHeight: 24,
               }}
             >
               Clear All
@@ -267,7 +282,7 @@ export function NotificationCenter() {
       </div>
 
       {/* Notifications List */}
-      <div style={{ flex: 1, overflowY: 'auto', maxHeight: 440 }}>
+      <div style={{ flex: 1, overflowY: 'auto', maxHeight: panelMaxHeight - 40, WebkitOverflowScrolling: 'touch' }}>
         {notifications.length === 0 ? (
           <div
             style={{

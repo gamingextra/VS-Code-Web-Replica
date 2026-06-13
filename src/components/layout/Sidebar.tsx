@@ -11,15 +11,16 @@ import { useBreakpoint } from '@/hooks/useWindowSize';
 
 const MIN_WIDTH = 120;
 const MAX_WIDTH_FRACTION = 0.7;
+const MOBILE_WIDTH_FRACTION = 0.85;
 
 export function Sidebar() {
   const { isVisible, width, setWidth, activeView, toggle } = useSidebarStore();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const [isResizing, setIsResizing] = useState(false);
-  const { isMobile, width: vw } = useBreakpoint();
+  const { isMobile, isTablet, width: vw } = useBreakpoint();
 
-  const maxWidth = Math.floor(vw * MAX_WIDTH_FRACTION);
-  const effectiveWidth = Math.min(Math.max(width, MIN_WIDTH), maxWidth);
+  const maxWidth = Math.floor(vw * (isMobile ? MOBILE_WIDTH_FRACTION : MAX_WIDTH_FRACTION));
+  const effectiveWidth = isMobile ? Math.min(Math.max(vw * 0.8, 240), maxWidth) : Math.min(Math.max(width, MIN_WIDTH), maxWidth);
 
   const isOverlay = isMobile;
 
@@ -32,7 +33,8 @@ export function Sidebar() {
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
       const newWidth = startWidth + (moveEvent.clientX - startX);
-      setWidth(Math.min(Math.max(newWidth, MIN_WIDTH), maxWidth));
+      const maxW = Math.floor(window.innerWidth * (isMobile ? MOBILE_WIDTH_FRACTION : MAX_WIDTH_FRACTION));
+      setWidth(Math.min(Math.max(newWidth, MIN_WIDTH), maxW));
     };
 
     const handleMouseUp = () => {
@@ -43,7 +45,31 @@ export function Sidebar() {
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  }, [effectiveWidth, maxWidth, isOverlay, setWidth]);
+  }, [effectiveWidth, isOverlay, setWidth, isMobile]);
+
+  // Touch resize support
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (isOverlay) return;
+    e.preventDefault();
+    setIsResizing(true);
+    const startX = e.touches[0].clientX;
+    const startWidth = effectiveWidth;
+
+    const handleTouchMove = (moveEvent: TouchEvent) => {
+      const newWidth = startWidth + (moveEvent.touches[0].clientX - startX);
+      const maxW = Math.floor(window.innerWidth * (isMobile ? MOBILE_WIDTH_FRACTION : MAX_WIDTH_FRACTION));
+      setWidth(Math.min(Math.max(newWidth, MIN_WIDTH), maxW));
+    };
+
+    const handleTouchEnd = () => {
+      setIsResizing(false);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+
+    document.addEventListener('touchmove', handleTouchMove);
+    document.addEventListener('touchend', handleTouchEnd);
+  }, [effectiveWidth, isOverlay, setWidth, isMobile]);
 
   useEffect(() => {
     if (!isOverlay || !isVisible) return;
@@ -53,6 +79,12 @@ export function Sidebar() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [isOverlay, isVisible, toggle]);
+
+  // Close sidebar on outside click on mobile
+  useEffect(() => {
+    if (!isOverlay || !isVisible) return;
+    // Handled by backdrop click
+  }, [isOverlay, isVisible]);
 
   if (!isVisible) return null;
 
@@ -81,10 +113,11 @@ export function Sidebar() {
           position: isOverlay ? 'fixed' : 'relative',
           top: isOverlay ? 0 : undefined,
           bottom: isOverlay ? 0 : undefined,
-          left: isOverlay ? 48 : undefined,
+          left: isOverlay ? 0 : undefined,
           zIndex: isOverlay ? 50 : undefined,
           userSelect: 'none',
           boxShadow: isOverlay ? '4px 0 16px rgba(0,0,0,0.4)' : undefined,
+          animation: isOverlay ? 'slideInLeft 0.2s ease-out' : undefined,
         }}
       >
         <div style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
@@ -98,6 +131,7 @@ export function Sidebar() {
         {!isOverlay && (
           <div
             onMouseDown={handleMouseDown}
+            onTouchStart={handleTouchStart}
             style={{
               position: 'absolute',
               right: 0,
@@ -107,10 +141,44 @@ export function Sidebar() {
               cursor: 'col-resize',
               zIndex: 10,
               backgroundColor: isResizing ? 'var(--vscode-sash-hover)' : 'transparent',
+              transition: isResizing ? 'none' : 'background-color 0.15s',
             }}
           />
         )}
+
+        {/* Close button on mobile overlay */}
+        {isOverlay && (
+          <button
+            onClick={toggle}
+            style={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              width: 28,
+              height: 28,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(0,0,0,0.3)',
+              border: 'none',
+              borderRadius: 4,
+              color: 'var(--vscode-fg)',
+              cursor: 'pointer',
+              fontSize: 16,
+              zIndex: 20,
+            }}
+          >
+            ✕
+          </button>
+        )}
       </div>
+
+      <style>{`
+        @keyframes slideInLeft {
+          from { transform: translateX(-100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+      `}</style>
     </>
   );
 }

@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useEditorStore } from '@/store/editorStore';
 import { useSidebarStore } from '@/store/sidebarStore';
 import { useAuthStore } from '@/store/authStore';
-import { useWindowSize } from '@/hooks/useWindowSize';
+import { useBreakpoint } from '@/hooks/useWindowSize';
+import { Menu, X } from 'lucide-react';
 
 interface MenuItem {
   label?: string;
@@ -15,6 +16,7 @@ interface MenuItem {
 
 interface MenuDef {
   name: string;
+  icon?: string;
   items: MenuItem[];
 }
 
@@ -28,23 +30,24 @@ function showToast(msg: string) {
 
 export function TitleBar() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLDivElement>(null);
-  const { width } = useWindowSize();
-
-  const showAllMenus = width >= 640;
-  const showSomeMenus = width >= 400;
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const { isMobile, isSmallMobile } = useBreakpoint();
 
   const handleNewFile = () => {
     const id = useEditorStore.getState().newUntitled();
     useEditorStore.getState().setActiveTab(id);
     setActiveMenu(null);
+    setMobileMenuOpen(false);
   };
 
   const handleSave = () => {
     const active = useEditorStore.getState().getActiveTab();
     if (active) useEditorStore.getState().markClean(active.id);
     setActiveMenu(null);
+    setMobileMenuOpen(false);
   };
 
   const handleSaveAs = () => {
@@ -59,34 +62,36 @@ export function TitleBar() {
       URL.revokeObjectURL(url);
     }
     setActiveMenu(null);
+    setMobileMenuOpen(false);
   };
 
-  const handleOpenFolder = () => { showToast('Open Folder not implemented in web'); setActiveMenu(null); };
-  const handleUndo = () => { window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'undo' } })); setActiveMenu(null); };
-  const handleRedo = () => { window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'redo' } })); setActiveMenu(null); };
-  const handleFind = () => { window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'find' } })); setActiveMenu(null); };
-  const handleReplace = () => { window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'replace' } })); setActiveMenu(null); };
-  const handleSelectAll = () => { window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'selectAll' } })); setActiveMenu(null); };
-  const handleCommandPalette = () => { setActiveMenu(null); window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'commandPalette' } })); };
-  const handleToggleSidebar = () => { useSidebarStore.getState().toggle(); setActiveMenu(null); };
-  const handleTogglePanel = () => { window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'togglePanel' } })); setActiveMenu(null); };
-  const handleToggleTerminal = () => { window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'toggleTerminal' } })); setActiveMenu(null); };
-  const handleStartDebugging = () => { window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'startDebugging' } })); setActiveMenu(null); };
-  const handleNewTerminal = () => { window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'newTerminal' } })); setActiveMenu(null); };
-  const handleNewWindow = () => { showToast('New Window not available in web'); setActiveMenu(null); };
-  const handleOpenFile = () => { showToast('File upload not implemented'); setActiveMenu(null); };
-  const handleExit = () => setActiveMenu(null);
-  const handleClipboard = (type: string) => () => { showToast(`${type} — use browser shortcut`); setActiveMenu(null); };
-  const handleGoToFile = () => { window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'commandPalette' } })); setActiveMenu(null); };
-  const handleGoToLine = () => { showToast('Go to Line not implemented'); setActiveMenu(null); };
-  const handleRunWithoutDebug = () => { window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'startDebugging' } })); setActiveMenu(null); };
-  const handleStopDebugging = () => { showToast('No active debug session'); setActiveMenu(null); };
-  const handleWelcome = () => { window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'welcome' } })); setActiveMenu(null); };
+  const handleOpenFolder = () => { showToast('Open Folder not implemented in web'); setActiveMenu(null); setMobileMenuOpen(false); };
+  const handleUndo = () => { window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'undo' } })); setActiveMenu(null); setMobileMenuOpen(false); };
+  const handleRedo = () => { window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'redo' } })); setActiveMenu(null); setMobileMenuOpen(false); };
+  const handleFind = () => { window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'find' } })); setActiveMenu(null); setMobileMenuOpen(false); };
+  const handleReplace = () => { window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'replace' } })); setActiveMenu(null); setMobileMenuOpen(false); };
+  const handleSelectAll = () => { window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'selectAll' } })); setActiveMenu(null); setMobileMenuOpen(false); };
+  const handleCommandPalette = () => { setActiveMenu(null); setMobileMenuOpen(false); window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'commandPalette' } })); };
+  const handleToggleSidebar = () => { useSidebarStore.getState().toggle(); setActiveMenu(null); setMobileMenuOpen(false); };
+  const handleTogglePanel = () => { window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'togglePanel' } })); setActiveMenu(null); setMobileMenuOpen(false); };
+  const handleToggleTerminal = () => { window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'toggleTerminal' } })); setActiveMenu(null); setMobileMenuOpen(false); };
+  const handleStartDebugging = () => { window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'startDebugging' } })); setActiveMenu(null); setMobileMenuOpen(false); };
+  const handleNewTerminal = () => { window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'newTerminal' } })); setActiveMenu(null); setMobileMenuOpen(false); };
+  const handleNewWindow = () => { showToast('New Window not available in web'); setActiveMenu(null); setMobileMenuOpen(false); };
+  const handleOpenFile = () => { showToast('File upload not implemented'); setActiveMenu(null); setMobileMenuOpen(false); };
+  const handleExit = () => { setActiveMenu(null); setMobileMenuOpen(false); };
+  const handleClipboard = (type: string) => () => { showToast(`${type} — use browser shortcut`); setActiveMenu(null); setMobileMenuOpen(false); };
+  const handleGoToFile = () => { window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'commandPalette' } })); setActiveMenu(null); setMobileMenuOpen(false); };
+  const handleGoToLine = () => { showToast('Go to Line not implemented'); setActiveMenu(null); setMobileMenuOpen(false); };
+  const handleRunWithoutDebug = () => { window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'startDebugging' } })); setActiveMenu(null); setMobileMenuOpen(false); };
+  const handleStopDebugging = () => { showToast('No active debug session'); setActiveMenu(null); setMobileMenuOpen(false); };
+  const handleWelcome = () => { window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'welcome' } })); setActiveMenu(null); setMobileMenuOpen(false); };
 
   const handleViewSidebar = (view: 'explorer' | 'search' | 'scm' | 'run' | 'extensions') => () => {
     useSidebarStore.getState().setView(view);
     useSidebarStore.getState().show();
     setActiveMenu(null);
+    setMobileMenuOpen(false);
   };
 
   const ALL_MENUS: MenuDef[] = [
@@ -174,18 +179,12 @@ export function TitleBar() {
         { label: 'Welcome', action: handleWelcome },
         { label: 'Show All Commands', shortcut: 'Ctrl+Shift+P', action: handleCommandPalette },
         { separator: true },
-        { label: 'About code-server', action: () => { showToast('code-server v4.89.0 - Running on 127.0.0.1:8080'); setActiveMenu(null); } },
+        { label: 'About code-server', action: () => { showToast('code-server v4.89.0 - Running on 127.0.0.1:8080'); setActiveMenu(null); setMobileMenuOpen(false); } },
         { separator: true },
-        { label: 'Sign Out', action: () => { useAuthStore.getState().logout(); setActiveMenu(null); } },
+        { label: 'Sign Out', action: () => { useAuthStore.getState().logout(); setActiveMenu(null); setMobileMenuOpen(false); } },
       ],
     },
   ];
-
-  const MENU_DEFS = showAllMenus
-    ? ALL_MENUS
-    : showSomeMenus
-      ? ALL_MENUS.filter((m) => ['File', 'Edit', 'View', 'Terminal', 'Help'].includes(m.name))
-      : ALL_MENUS.filter((m) => ['File', 'View', 'Terminal'].includes(m.name));
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -195,11 +194,179 @@ export function TitleBar() {
       ) {
         setActiveMenu(null);
       }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) {
+        setMobileMenuOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Mobile: hamburger menu with slide-in panel
+  if (isMobile) {
+    return (
+      <>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            backgroundColor: 'var(--vscode-titleBar-bg)',
+            color: 'var(--vscode-titleBar-activeFg)',
+            fontSize: 13,
+            fontWeight: 400,
+            flexShrink: 0,
+            userSelect: 'none',
+            zIndex: 100,
+            position: 'relative',
+            overflow: 'hidden',
+            height: 36,
+            paddingLeft: 4,
+            paddingRight: 4,
+          }}
+          className="safe-area-top"
+        >
+          {/* Hamburger button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            style={{
+              width: 36,
+              height: 36,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'transparent',
+              border: 'none',
+              color: 'inherit',
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            <Menu size={20} />
+          </button>
+
+          {/* Title */}
+          <div style={{ flex: 1, textAlign: 'center', fontSize: 13, opacity: 0.8, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', minWidth: 0 }}>
+            workspace - code-server
+          </div>
+
+          {/* Remote indicator */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, opacity: 0.9 }}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M4.287 6.783l-.8-.8A4.784 4.784 0 018 3.5c1.78 0 3.35.975 4.188 2.433l-.866.5A3.784 3.784 0 008 4.5a3.784 3.784 0 00-3.713 2.283zm1.6 1.6l-.8-.8A2.79 2.79 0 018 6.5c1.04 0 1.94.57 2.413 1.413l-.866.5A1.79 1.79 0 008 7.5a1.79 1.79 0 00-1.113.883zM8 10a1 1 0 100-2 1 1 0 000 2z" />
+            </svg>
+          </div>
+        </div>
+
+        {/* Mobile menu overlay */}
+        {mobileMenuOpen && (
+          <>
+            <div
+              onClick={() => setMobileMenuOpen(false)}
+              style={{
+                position: 'fixed',
+                inset: 0,
+                background: 'rgba(0,0,0,0.5)',
+                zIndex: 200,
+              }}
+            />
+            <div
+              ref={mobileMenuRef}
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                bottom: 0,
+                width: isSmallMobile ? '85vw' : 280,
+                maxWidth: 320,
+                backgroundColor: 'var(--vscode-menu-bg)',
+                borderRight: '1px solid var(--vscode-border)',
+                zIndex: 210,
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+                animation: 'slideInLeft 0.2s ease-out',
+              }}
+            >
+              {/* Mobile menu header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid var(--vscode-border)', flexShrink: 0 }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--vscode-fg)' }}>Menu</span>
+                <button
+                  onClick={() => setMobileMenuOpen(false)}
+                  style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', color: 'var(--vscode-fg)', cursor: 'pointer', borderRadius: 4 }}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Menu items */}
+              <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                {ALL_MENUS.map((menu) => (
+                  <div key={menu.name}>
+                    <div style={{ padding: '10px 16px 4px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--vscode-fg)', opacity: 0.5 }}>
+                      {menu.name}
+                    </div>
+                    {menu.items.map((item, idx) =>
+                      item.separator ? (
+                        <div key={idx} style={{ height: 1, backgroundColor: 'var(--vscode-border)', margin: '4px 16px' }} />
+                      ) : (
+                        <button
+                          key={idx}
+                          onClick={item.action}
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            width: '100%',
+                            padding: '10px 16px',
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'var(--vscode-fg)',
+                            fontSize: 14,
+                            fontFamily: 'inherit',
+                            cursor: item.action ? 'pointer' : 'default',
+                            opacity: item.action ? 1 : 0.5,
+                            textAlign: 'left',
+                          }}
+                          onTouchStart={(e) => {
+                            if (item.action) (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--vscode-list-hover)';
+                          }}
+                          onTouchEnd={(e) => {
+                            (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
+                          }}
+                          onMouseEnter={(e) => {
+                            if (item.action) e.currentTarget.style.backgroundColor = 'var(--vscode-menu-hover)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                        >
+                          <span>{item.label}</span>
+                          {item.shortcut && (
+                            <span style={{ fontSize: 11, opacity: 0.4, marginLeft: 16, fontFamily: 'monospace', flexShrink: 0 }}>
+                              {item.shortcut}
+                            </span>
+                          )}
+                        </button>
+                      )
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        <style>{`
+          @keyframes slideInLeft {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
+          }
+        `}</style>
+      </>
+    );
+  }
+
+  // Desktop title bar
   return (
     <div
       style={{
@@ -246,7 +413,7 @@ export function TitleBar() {
           minWidth: 0,
         }}
       >
-        {MENU_DEFS.map((menu) => (
+        {ALL_MENUS.map((menu) => (
           <div key={menu.name} style={{ position: 'relative', flexShrink: 0 }}>
             <button
               onClick={() => setActiveMenu(activeMenu === menu.name ? null : menu.name)}
@@ -281,6 +448,7 @@ export function TitleBar() {
                   boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
                   zIndex: 1000,
                   minWidth: 200,
+                  maxWidth: '90vw',
                   padding: '4px 0',
                   fontSize: 13,
                   fontWeight: 400,
