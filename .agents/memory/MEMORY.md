@@ -1,0 +1,1 @@
+- [VS Code Web project](vscode-web.md) — key stack facts, AI integration, settings, quirks for this project

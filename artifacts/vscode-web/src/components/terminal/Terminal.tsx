@@ -68,8 +68,8 @@ export function Terminal() {
         if (lastClaudeOutput) {
           historyRef.current[active.id] = [
             ...termHistory,
-            { role: 'user', content: trimmed },
-            { role: 'assistant', content: lastClaudeOutput.text },
+            { role: 'user' as const, content: trimmed },
+            { role: 'assistant' as const, content: lastClaudeOutput.text },
           ].slice(-20); // keep last 20 turns
         }
         return;
