@@ -1,26 +1,33 @@
 ---
 Task ID: 1
 Agent: Main Agent
-Task: Build VS Code Web Replica from GitHub repo as a Next.js web application
+Task: Add missing features from code-server to VS Code Web Replica
 
 Work Log:
-- Analyzed the GitHub repository https://github.com/gamingextra/VS-Code-Web-Replica structure and source code
-- Downloaded all 41 source files from the repo for reference
-- Installed dependencies: zustand, @monaco-editor/react, monaco-editor, react-resizable-panels, sonner, cmdk, lucide-react, framer-motion
-- Created 11 Zustand stores: editorStore, fileSystemStore, sidebarStore, terminalStore, settingsStore, themeStore, statusBarStore, gitStore, extensionStore, workspaceStore, panelStore
-- Built complete VS Code layout: TitleBar, ActivityBar, Sidebar, TabBar, EditorArea, BottomPanel, StatusBar
-- Built sidebar views: ExplorerView, SearchView, SCMView, RunDebugView, ExtensionsView
-- Built terminal with shell command simulation (ls, cd, pwd, cat, git, npm, etc.)
-- Built CommandPalette with cmdk fuzzy search
-- Built SettingsPanel with full settings UI
-- Built WelcomePage with VS Code branding
-- Added VS Code CSS theme variables supporting 5 themes: Dark+, Light+, Monokai, Solarized Dark, GitHub
-- Integrated Monaco Editor with custom themes, split pane support, keyboard shortcuts
-- Fixed lint errors (DebugConsolePanel eval usage, eslint config for download dir)
-- Verified in browser: file opening, terminal, command palette, search, extensions all working
+- Researched code-server features from https://github.com/coder/code-server
+- Identified 12+ missing features to implement
+- Created 3 new Zustand stores: authStore, notificationStore, portStore
+- Created LoginScreen component with password auth and rate limiting
+- Created NotificationCenter component with read/dismiss/actions
+- Created PortsPanel component with port forwarding UI
+- Created WorkspaceTrustDialog component
+- Updated StatusBar with remote connection indicator and notification bell badge
+- Updated BottomPanel to include PORTS tab
+- Updated ExplorerView with file upload and download capabilities
+- Enhanced terminal with 40+ commands (head, tail, wc, grep, find, curl, ping, code-server, etc.)
+- Added tab completion to TerminalInput
+- Updated TitleBar with code-server branding, remote indicator, and Sign Out option
+- Updated page.tsx to wire all new features together
+- All lint checks pass
+- Browser verification passed for all features
 
 Stage Summary:
-- Complete VS Code Web Replica built as Next.js 16 app at / route
-- All major VS Code features implemented: editor, file explorer, terminal, command palette, settings, themes
-- App runs at http://localhost:3000 with 200 status
-- Lint passes clean
+- Login screen with password "vscode" and rate limiting
+- Remote connection indicator (green dot) in status bar
+- Notification center with unread badge and update notifications
+- Ports panel with 4 pre-configured ports (2 running)
+- File upload via toolbar button, download via right-click context menu
+- 40+ terminal commands with tab completion
+- Workspace trust dialog on first open
+- Sign Out option in Help menu
+- code-server branding in title bar

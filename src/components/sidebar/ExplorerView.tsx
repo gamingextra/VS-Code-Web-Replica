@@ -23,9 +23,10 @@ interface ContextMenuProps {
   node: FileNode;
   onClose: () => void;
   onContextAction?: (action: 'newFile' | 'newFolder', node: FileNode) => void;
+  onDownloadFile?: (node: FileNode) => void;
 }
 
-function ContextMenu({ x, y, node, onClose, onContextAction }: ContextMenuProps) {
+function ContextMenu({ x, y, node, onClose, onContextAction, onDownloadFile }: ContextMenuProps) {
   const { deleteNode } = useFileSystemStore();
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -49,6 +50,9 @@ function ContextMenu({ x, y, node, onClose, onContextAction }: ContextMenuProps)
     { label: 'Delete', shortcut: 'Del', danger: true, action: () => { deleteNode(node.id); toast.success(`Deleted ${node.name}`); onClose(); } },
     { separator: true },
     { label: 'Copy Path', action: () => { navigator.clipboard.writeText(node.path); toast.success('Path copied'); onClose(); } },
+    ...(node.type === 'file' ? [
+      { label: 'Download File', action: () => { onDownloadFile?.(node); onClose(); } },
+    ] : []),
   ];
 
   return createPortal(
@@ -86,9 +90,10 @@ interface FileTreeNodeProps {
   onToggle: (node: FileNode) => void;
   onSelect: (node: FileNode) => void;
   onContextAction?: (action: 'newFile' | 'newFolder', node: FileNode) => void;
+  onDownloadFile?: (node: FileNode) => void;
 }
 
-export function FileTreeNode({ node, depth = 0, selectedId, expandedIds, onToggle, onSelect, onContextAction }: FileTreeNodeProps) {
+export function FileTreeNode({ node, depth = 0, selectedId, expandedIds, onToggle, onSelect, onContextAction, onDownloadFile }: FileTreeNodeProps) {
   const isExpanded = expandedIds.has(node.id);
   const isSelected = selectedId === node.id;
   const paddingLeft = 8 + depth * 12;
@@ -155,9 +160,9 @@ export function FileTreeNode({ node, depth = 0, selectedId, expandedIds, onToggl
           )}
         </div>
         {isExpanded && node.children?.map((child) => (
-          <FileTreeNode key={child.id} node={child} depth={depth + 1} selectedId={selectedId} expandedIds={expandedIds} onToggle={onToggle} onSelect={onSelect} onContextAction={onContextAction} />
+          <FileTreeNode key={child.id} node={child} depth={depth + 1} selectedId={selectedId} expandedIds={expandedIds} onToggle={onToggle} onSelect={onSelect} onContextAction={onContextAction} onDownloadFile={onDownloadFile} />
         ))}
-        {contextMenu && <ContextMenu x={contextMenu.x} y={contextMenu.y} node={node} onClose={() => setContextMenu(null)} onContextAction={onContextAction} />}
+        {contextMenu && <ContextMenu x={contextMenu.x} y={contextMenu.y} node={node} onClose={() => setContextMenu(null)} onContextAction={onContextAction} onDownloadFile={onDownloadFile} />}
       </div>
     );
   }
@@ -180,7 +185,7 @@ export function FileTreeNode({ node, depth = 0, selectedId, expandedIds, onToggl
           <span className="truncate">{node.name}</span>
         )}
       </div>
-      {contextMenu && <ContextMenu x={contextMenu.x} y={contextMenu.y} node={node} onClose={() => setContextMenu(null)} onContextAction={onContextAction} />}
+      {contextMenu && <ContextMenu x={contextMenu.x} y={contextMenu.y} node={node} onClose={() => setContextMenu(null)} onContextAction={onContextAction} onDownloadFile={onDownloadFile} />}
     </div>
   );
 }
@@ -194,6 +199,7 @@ export function ExplorerView() {
   const [creating, setCreating] = useState<CreateMode | null>(null);
   const [createName, setCreateName] = useState('');
   const createInputRef = useRef<HTMLInputElement>(null);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { if (creating && createInputRef.current) createInputRef.current.focus(); }, [creating]);
 
@@ -234,6 +240,38 @@ export function ExplorerView() {
     setCreating(null); setCreateName('');
   }, [creating, createName, createFile, createFolder, createFileAtRoot, createFolderAtRoot, expandFolder]);
 
+  // File download handler
+  const handleDownloadFile = useCallback((node: FileNode) => {
+    const content = node.content || '';
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = node.name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success(`Downloaded ${node.name}`);
+  }, []);
+
+  // File upload handler
+  const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    Array.from(files).forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const content = event.target?.result as string;
+        createFileAtRoot(file.name, content);
+        toast.success(`Uploaded ${file.name}`);
+      };
+      reader.readAsText(file);
+    });
+    // Reset input
+    if (uploadInputRef.current) uploadInputRef.current.value = '';
+  }, [createFileAtRoot]);
+
   const openEditors = tabs.filter((t) => !t.path.startsWith('Untitled'));
 
   return (
@@ -243,6 +281,10 @@ export function ExplorerView() {
         <div className="flex gap-0.5">
           <button title="New File" onClick={() => startCreating('file', null)} className="w-6 h-6 flex items-center justify-center hover:bg-[var(--vscode-list-hover)] rounded opacity-60 hover:opacity-100"><NewFileIcon size={16} /></button>
           <button title="New Folder" onClick={() => startCreating('folder', null)} className="w-6 h-6 flex items-center justify-center hover:bg-[var(--vscode-list-hover)] rounded opacity-60 hover:opacity-100"><NewFolderIcon size={16} /></button>
+          <button title="Upload Files" onClick={() => uploadInputRef.current?.click()} className="w-6 h-6 flex items-center justify-center hover:bg-[var(--vscode-list-hover)] rounded opacity-60 hover:opacity-100">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8.5 1.5v7.2l2.1-2.1.7.7-3.3 3.3-3.3-3.3.7-.7 2.1 2.1V1.5h1zM2.5 12.5v1h11v-1h-11z"/></svg>
+          </button>
+          <input ref={uploadInputRef} type="file" multiple style={{ display: 'none' }} onChange={handleFileUpload} />
           <button title="Refresh Explorer" className="w-6 h-6 flex items-center justify-center hover:bg-[var(--vscode-list-hover)] rounded opacity-60 hover:opacity-100"><RefreshExplorerIcon size={16} /></button>
           <button title="Collapse All" onClick={handleCollapseAll} className="w-6 h-6 flex items-center justify-center hover:bg-[var(--vscode-list-hover)] rounded opacity-60 hover:opacity-100"><CollapseAllIcon size={16} /></button>
         </div>
@@ -272,7 +314,7 @@ export function ExplorerView() {
 
       <div className="flex-1 overflow-auto">
         {root.map((node) => (
-          <FileTreeNode key={node.id} node={node} depth={0} selectedId={selectedNodeId} expandedIds={expandedIds} onToggle={handleToggle} onSelect={handleSelect} onContextAction={(action, n) => startCreating(action === 'newFile' ? 'file' : 'folder', n.id)} />
+          <FileTreeNode key={node.id} node={node} depth={0} selectedId={selectedNodeId} expandedIds={expandedIds} onToggle={handleToggle} onSelect={handleSelect} onContextAction={(action, n) => startCreating(action === 'newFile' ? 'file' : 'folder', n.id)} onDownloadFile={handleDownloadFile} />
         ))}
       </div>
     </div>

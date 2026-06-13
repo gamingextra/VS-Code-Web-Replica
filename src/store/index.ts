@@ -18,3 +18,11 @@ export { useGitStore } from './gitStore';
 export type { GitFile, GitCommit } from './gitStore';
 
 export { useTerminalStore } from './terminalStore';
+
+export { useAuthStore } from './authStore';
+
+export { useNotificationStore } from './notificationStore';
+export type { Notification } from './notificationStore';
+
+export { usePortStore } from './portStore';
+export type { PortForward } from './portStore';

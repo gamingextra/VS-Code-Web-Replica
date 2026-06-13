@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { Toaster } from 'sonner';
+import { Toaster, toast } from 'sonner';
 import { TitleBar } from '@/components/layout/TitleBar';
 import { ActivityBar } from '@/components/layout/ActivityBar';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -11,12 +11,17 @@ import { BottomPanel } from '@/components/layout/BottomPanel';
 import { StatusBar } from '@/components/layout/StatusBar';
 import { CommandPalette } from '@/components/CommandPalette';
 import { SettingsPanel } from '@/components/layout/SettingsPanel';
+import { LoginScreen } from '@/components/auth/LoginScreen';
+import { NotificationCenter } from '@/components/notifications/NotificationCenter';
+import { WorkspaceTrustDialog } from '@/components/dialog/WorkspaceTrustDialog';
 import { useFileSystemStore } from '@/store/fileSystemStore';
 import { useEditorStore } from '@/store/editorStore';
 import { useKeyboardShortcuts, registerShortcut } from '@/hooks/useKeyboardShortcuts';
 import { useSidebarStore } from '@/store/sidebarStore';
 import { useTerminalStore } from '@/store/terminalStore';
 import { useSettingsStore } from '@/store/settingsStore';
+import { useAuthStore } from '@/store/authStore';
+import { useNotificationStore } from '@/store/notificationStore';
 import { createDemoWorkspace } from '@/data/demoWorkspace';
 import { useBreakpoint } from '@/hooks/useWindowSize';
 
@@ -80,9 +85,18 @@ export default function Home() {
   const { toggle: toggleSidebar, isVisible: sidebarVisible } = useSidebarStore();
   const { togglePanel } = useTerminalStore();
   const settings = useSettingsStore();
+  const { isAuthenticated } = useAuthStore();
+  const { addNotification } = useNotificationStore();
   const { isMobile } = useBreakpoint();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [kbShortcutsOpen, setKbShortcutsOpen] = useState(false);
+  const [showTrustDialog, setShowTrustDialog] = useState(false);
+  const [workspaceTrusted, setWorkspaceTrusted] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('vscode-workspace-trusted') === 'true';
+    }
+    return false;
+  });
   const autoSaveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   // Auto-collapse sidebar on mobile
@@ -94,6 +108,30 @@ export default function Home() {
   useEffect(() => {
     setRoot(createDemoWorkspace());
   }, [setRoot]);
+
+  // Show trust dialog if workspace is not trusted
+  useEffect(() => {
+    if (!workspaceTrusted) {
+      const timer = setTimeout(() => setShowTrustDialog(true), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [workspaceTrusted]);
+
+  // Schedule update notification (like code-server's 6-hour check)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      addNotification({
+        type: 'update',
+        title: 'Update Available',
+        message: 'code-server v4.90.0 is now available. You are running v4.89.0.',
+        actions: [
+          { label: 'Release Notes', action: () => {} },
+          { label: 'Dismiss', action: () => {} },
+        ],
+      });
+    }, 30000); // Show after 30 seconds for demo
+    return () => clearTimeout(timer);
+  }, [addNotification]);
 
   // Auto-save: debounce dirty tabs
   useEffect(() => {
@@ -167,6 +205,27 @@ export default function Home() {
 
   const { zenMode } = settings;
 
+  // Show login screen if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <>
+        <LoginScreen />
+        <Toaster
+          position="bottom-right"
+          theme="dark"
+          toastOptions={{
+            style: {
+              backgroundColor: '#252526',
+              border: '1px solid #454545',
+              color: '#cccccc',
+              fontSize: 13,
+            },
+          }}
+        />
+      </>
+    );
+  }
+
   return (
     <div
       style={{
@@ -196,6 +255,15 @@ export default function Home() {
       <CommandPalette />
       {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
       {kbShortcutsOpen && <KeyboardShortcutsPanel onClose={() => setKbShortcutsOpen(false)} />}
+      <NotificationCenter />
+
+      {/* Workspace Trust Dialog */}
+      {showTrustDialog && !workspaceTrusted && (
+        <WorkspaceTrustDialog
+          onTrust={() => { setWorkspaceTrusted(true); setShowTrustDialog(false); }}
+          onDismiss={() => { setShowTrustDialog(false); }}
+        />
+      )}
 
       {zenMode && (
         <div

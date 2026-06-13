@@ -6,23 +6,30 @@ import { Terminal } from '@/components/terminal/Terminal';
 import { ProblemsPanel } from '@/components/panel/ProblemsPanel';
 import { OutputPanel } from '@/components/panel/OutputPanel';
 import { DebugConsolePanel } from '@/components/panel/DebugConsolePanel';
+import { PortsPanel } from '@/components/panel/PortsPanel';
 import { TerminalIcon, ProblemsIcon, OutputIcon, DebugConsoleIcon } from '@/components/icons';
 import { useWindowSize } from '@/hooks/useWindowSize';
 
-type PanelTab = 'terminal' | 'problems' | 'output' | 'debugConsole';
+type PanelTab = 'terminal' | 'problems' | 'output' | 'debugConsole' | 'ports';
 
 const PANEL_TABS: { id: PanelTab; icon: React.FC<{ size?: number }>; label: string }[] = [
   { id: 'terminal', icon: TerminalIcon, label: 'TERMINAL' },
   { id: 'problems', icon: ProblemsIcon, label: 'PROBLEMS' },
   { id: 'output', icon: OutputIcon, label: 'OUTPUT' },
   { id: 'debugConsole', icon: DebugConsoleIcon, label: 'DEBUG CONSOLE' },
+  { id: 'ports', icon: () => <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M1 3.5A1.5 1.5 0 012.5 2h11A1.5 1.5 0 0115 3.5v9a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 011 12.5v-9zM2.5 3a.5.5 0 00-.5.5v9a.5.5 0 00.5.5h11a.5.5 0 00.5-.5v-9a.5.5 0 00-.5-.5h-11zM5 6.5a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zM6.5 5.5a.5.5 0 100 1 .5.5 0 000-1z"/></svg>, label: 'PORTS' },
 ];
 
 const MIN_HEIGHT = 80;
 const DEFAULT_HEIGHT = 200;
 
 export function BottomPanel() {
-  const { activePanelTab, setActivePanelTab, showPanel } = useTerminalStore();
+  const terminalStore = useTerminalStore();
+  const activePanelTab = terminalStore.activePanelTab as PanelTab;
+  const setActivePanelTab = (tab: PanelTab) => {
+    terminalStore.setActivePanelTab(tab as 'terminal' | 'problems' | 'output' | 'debugConsole');
+  };
+  const showPanel = terminalStore.showPanel;
   const [isResizing, setIsResizing] = useState(false);
   const [height, setHeight] = useState(DEFAULT_HEIGHT);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -133,6 +140,7 @@ export function BottomPanel() {
         {activePanelTab === 'problems' && <ProblemsPanel />}
         {activePanelTab === 'output' && <OutputPanel />}
         {activePanelTab === 'debugConsole' && <DebugConsolePanel />}
+        {activePanelTab === 'ports' && <PortsPanel />}
       </div>
     </div>
   );

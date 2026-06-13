@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useEditorStore } from '@/store/editorStore';
 import { useSidebarStore } from '@/store/sidebarStore';
+import { useAuthStore } from '@/store/authStore';
 import { useWindowSize } from '@/hooks/useWindowSize';
 
 interface MenuItem {
@@ -172,6 +173,10 @@ export function TitleBar() {
       items: [
         { label: 'Welcome', action: handleWelcome },
         { label: 'Show All Commands', shortcut: 'Ctrl+Shift+P', action: handleCommandPalette },
+        { separator: true },
+        { label: 'About code-server', action: () => { showToast('code-server v4.89.0 - Running on 127.0.0.1:8080'); setActiveMenu(null); } },
+        { separator: true },
+        { label: 'Sign Out', action: () => { useAuthStore.getState().logout(); setActiveMenu(null); } },
       ],
     },
   ];
@@ -212,6 +217,23 @@ export function TitleBar() {
         height: 30,
       }}
     >
+      {/* code-server remote indicator */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 4,
+          padding: '0 8px',
+          fontSize: 12,
+          color: 'var(--vscode-titleBar-activeFg)',
+          flexShrink: 0,
+          opacity: 0.9,
+        }}
+      >
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M4.287 6.783l-.8-.8A4.784 4.784 0 018 3.5c1.78 0 3.35.975 4.188 2.433l-.866.5A3.784 3.784 0 008 4.5a3.784 3.784 0 00-3.713 2.283zm1.6 1.6l-.8-.8A2.79 2.79 0 018 6.5c1.04 0 1.94.57 2.413 1.413l-.866.5A1.79 1.79 0 008 7.5a1.79 1.79 0 00-1.113.883zM8 10a1 1 0 100-2 1 1 0 000 2z" />
+        </svg>
+      </div>
       <div
         ref={menuButtonRef}
         style={{
@@ -304,6 +326,22 @@ export function TitleBar() {
             )}
           </div>
         ))}
+      </div>
+
+      {/* Title with code-server branding */}
+      <div
+        style={{
+          flex: 1,
+          textAlign: 'center',
+          fontSize: 12,
+          opacity: 0.7,
+          overflow: 'hidden',
+          whiteSpace: 'nowrap',
+          textOverflow: 'ellipsis',
+          minWidth: 0,
+        }}
+      >
+        workspace - code-server
       </div>
     </div>
   );
