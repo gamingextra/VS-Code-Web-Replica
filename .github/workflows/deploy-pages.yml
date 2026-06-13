@@ -10,10 +10,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
-  administrations: write
 
 concurrency:
   group: "pages"
@@ -28,15 +27,20 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           REPO="${{ github.repository }}"
+          API_URL="https://api.github.com/repos/$REPO/pages"
           # Check if Pages is already enabled
-          if gh api "repos/$REPO/pages" > /dev/null 2>&1; then
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token $GH_TOKEN" "$API_URL")
+          if [ "$HTTP_STATUS" = "200" ]; then
             echo "Pages already enabled."
           else
             echo "Enabling GitHub Pages with GitHub Actions source..."
-            gh api "repos/$REPO/pages" \
-              --method POST \
-              --field build_type=workflow 2>/dev/null || true
-            echo "Pages enabled. You may also need to configure it at Settings > Pages > Source: GitHub Actions"
+            curl -s -X POST \
+              -H "Authorization: token $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "$API_URL" \
+              -d '{"build_type":"workflow"}' || true
+            echo "Pages site creation requested."
+            echo "If this still fails, go to: Settings > Pages > Source > select 'GitHub Actions'"
           fi
 
   build:
