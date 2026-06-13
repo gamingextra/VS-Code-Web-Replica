@@ -5,6 +5,7 @@ import { ProblemsPanel } from '@/components/panel/ProblemsPanel';
 import { OutputPanel } from '@/components/panel/OutputPanel';
 import { DebugConsolePanel } from '@/components/panel/DebugConsolePanel';
 import { TerminalIcon, ProblemsIcon, OutputIcon, DebugConsoleIcon } from '@/components/icons';
+import { useWindowSize } from '@/hooks/useWindowSize';
 
 type PanelTab = 'terminal' | 'problems' | 'output' | 'debugConsole';
 
@@ -15,21 +16,31 @@ const PANEL_TABS: { id: PanelTab; icon: React.FC<{ size?: number }>; label: stri
   { id: 'debugConsole', icon: DebugConsoleIcon, label: 'DEBUG CONSOLE' },
 ];
 
+const MIN_HEIGHT = 80;
+const DEFAULT_HEIGHT = 200;
+
 export function BottomPanel() {
   const { activePanelTab, setActivePanelTab, showPanel } = useTerminalStore();
   const [isResizing, setIsResizing] = useState(false);
-  const [height, setHeight] = useState(200);
+  const [height, setHeight] = useState(DEFAULT_HEIGHT);
   const panelRef = useRef<HTMLDivElement>(null);
+  const { height: vh } = useWindowSize();
+
+  // Clamp height to viewport bounds: min 80px, max 60% of viewport height
+  const maxHeight = Math.floor(vh * 0.6);
+  const effectiveHeight = Math.min(Math.max(height, MIN_HEIGHT), maxHeight);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     setIsResizing(true);
     const startY = e.clientY;
-    const startHeight = height;
+    const startHeight = effectiveHeight;
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
-      const newHeight = startHeight - (moveEvent.clientY - startY);
-      setHeight(newHeight);
+      const delta = moveEvent.clientY - startY;
+      const newHeight = startHeight - delta;
+      const maxH = Math.floor(window.innerHeight * 0.6);
+      setHeight(Math.min(Math.max(newHeight, MIN_HEIGHT), maxH));
     };
 
     const handleMouseUp = () => {
@@ -40,7 +51,7 @@ export function BottomPanel() {
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  }, [height]);
+  }, [effectiveHeight]);
 
   if (!showPanel) return null;
 
@@ -48,13 +59,14 @@ export function BottomPanel() {
     <div
       ref={panelRef}
       style={{
-        height,
+        height: effectiveHeight,
         backgroundColor: 'var(--vscode-panel-bg)',
         display: 'flex',
         flexDirection: 'column',
         flexShrink: 0,
         position: 'relative',
         borderTop: '1px solid var(--vscode-panel-border)',
+        minHeight: MIN_HEIGHT,
       }}
     >
       {/* Resize sash */}
@@ -65,7 +77,7 @@ export function BottomPanel() {
           top: -3,
           left: 0,
           right: 0,
-          height: 5,
+          height: 6,
           cursor: 'row-resize',
           zIndex: 10,
           backgroundColor: isResizing ? 'var(--vscode-sash-hover)' : 'transparent',
@@ -78,11 +90,12 @@ export function BottomPanel() {
           height: 35,
           display: 'flex',
           alignItems: 'center',
-          paddingLeft: 12,
+          paddingLeft: 8,
           gap: 0,
           userSelect: 'none',
           borderBottom: '1px solid var(--vscode-panel-border)',
           flexShrink: 0,
+          overflow: 'hidden',
         }}
       >
         {PANEL_TABS.map(({ id, icon: Icon, label }) => (
@@ -94,28 +107,30 @@ export function BottomPanel() {
               alignItems: 'center',
               gap: 4,
               height: 35,
-              padding: '0 12px',
+              padding: '0 8px',
               background: 'transparent',
               border: 'none',
               borderBottom: activePanelTab === id ? '1px solid var(--vscode-focusBorder)' : '1px solid transparent',
               marginBottom: -1,
-              color: activePanelTab === id ? 'var(--vscode-fg)' : 'var(--vscode-fg)',
+              color: 'var(--vscode-fg)',
               opacity: activePanelTab === id ? 1 : 0.6,
               cursor: 'pointer',
               fontSize: 11,
               fontWeight: 700,
               letterSpacing: 0.5,
               fontFamily: 'inherit',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
             }}
           >
             <Icon size={14} />
-            {label}
+            <span className="panel-tab-label">{label}</span>
           </button>
         ))}
       </div>
 
       {/* Panel content */}
-      <div style={{ flex: 1, overflow: 'hidden' }}>
+      <div style={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
         {activePanelTab === 'terminal' && <Terminal />}
         {activePanelTab === 'problems' && <ProblemsPanel />}
         {activePanelTab === 'output' && <OutputPanel />}

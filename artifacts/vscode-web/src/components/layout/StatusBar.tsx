@@ -3,6 +3,7 @@ import * as Popover from '@radix-ui/react-popover';
 import { useStatusBarStore } from '@/store/statusBarStore';
 import { useSidebarStore } from '@/store/sidebarStore';
 import { GitBranchIcon, WarningIcon, ErrorIcon, BellIcon, CheckIcon } from '@/components/icons';
+import { useWindowSize } from '@/hooks/useWindowSize';
 
 const BRANCHES = ['main', 'develop', 'feature/auth'];
 const INDENTS = ['Spaces: 2', 'Spaces: 4', 'Spaces: 8', 'Tab'];
@@ -43,6 +44,7 @@ function PopoverPicker({
             fontSize: 12,
             fontWeight: 400,
             fontFamily: 'inherit',
+            whiteSpace: 'nowrap',
           }}
           onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.12)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
@@ -80,7 +82,7 @@ function PopoverPicker({
               onMouseLeave={(e) => { if (opt !== value) e.currentTarget.style.backgroundColor = 'transparent'; }}
             >
               <span>{opt}</span>
-              {opt === value && <span style={{ fontSize: 10 }}>{'\u2713'}</span>}
+              {opt === value && <span style={{ fontSize: 10 }}>✓</span>}
             </div>
           ))}
         </Popover.Content>
@@ -102,8 +104,17 @@ export function StatusBar() {
     indentation,
   } = useStatusBarStore();
   const sidebar = useSidebarStore();
+  const { width } = useWindowSize();
 
   const hasProblems = problems.errors > 0 || problems.warnings > 0;
+
+  // Breakpoints for what to show
+  const showCursorPos = width >= 480;
+  const showIndent = width >= 580;
+  const showEncoding = width >= 680;
+  const showEol = width >= 760;
+  const showLanguage = width >= 420;
+  const showPrettier = width >= 860;
 
   return (
     <div
@@ -114,18 +125,20 @@ export function StatusBar() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 8px',
+        padding: '0 4px',
         fontSize: 12,
         fontWeight: 400,
         flexShrink: 0,
         userSelect: 'none',
+        overflow: 'hidden',
+        minWidth: 0,
       }}
     >
       {/* Left section */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 0, overflow: 'hidden', flexShrink: 0 }}>
         {/* Branch */}
         <PopoverPicker
-          trigger={<><GitBranchIcon size={14} /><span>{branch}</span></>}
+          trigger={<><GitBranchIcon size={14} /><span style={{ marginLeft: 3 }}>{branch}</span></>}
           options={BRANCHES}
           value={branch}
           onChange={(v) => useStatusBarStore.setState({ branch: v })}
@@ -138,13 +151,14 @@ export function StatusBar() {
           </svg>
         </StatusBarItem>
 
-        {/* Problems — clickable */}
+        {/* Problems */}
         <button
           onClick={() => sidebar.setView('explorer')}
           style={{
             display: 'flex', alignItems: 'center', gap: 4, padding: '0 6px',
             height: 22, background: 'transparent', border: 'none',
             color: 'inherit', cursor: 'pointer', fontSize: 12, fontWeight: 400,
+            whiteSpace: 'nowrap',
           }}
           onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.12)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
@@ -160,69 +174,75 @@ export function StatusBar() {
         </button>
       </div>
 
-      {/* Right section */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
-        {/* Cursor position */}
-        <StatusBarItem>
-          <span>Ln {line}, Col {col}</span>
-        </StatusBarItem>
+      {/* Right section — hide items progressively as screen narrows */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 0, flexShrink: 0 }}>
+        {showCursorPos && (
+          <StatusBarItem>
+            <span>Ln {line}, Col {col}</span>
+          </StatusBarItem>
+        )}
 
-        {/* Indentation */}
-        <PopoverPicker
-          trigger={<span>{indentation}</span>}
-          options={INDENTS}
-          value={indentation}
-          onChange={(v) => useStatusBarStore.setState({ indentation: v })}
-        />
+        {showIndent && (
+          <PopoverPicker
+            trigger={<span>{indentation}</span>}
+            options={INDENTS}
+            value={indentation}
+            onChange={(v) => useStatusBarStore.setState({ indentation: v })}
+          />
+        )}
 
-        {/* Encoding */}
-        <PopoverPicker
-          trigger={<span>{encoding}</span>}
-          options={ENCODINGS}
-          value={encoding}
-          onChange={(v) => useStatusBarStore.setState({ encoding: v })}
-        />
+        {showEncoding && (
+          <PopoverPicker
+            trigger={<span>{encoding}</span>}
+            options={ENCODINGS}
+            value={encoding}
+            onChange={(v) => useStatusBarStore.setState({ encoding: v })}
+          />
+        )}
 
-        {/* EOL */}
-        <PopoverPicker
-          trigger={<span>{eol}</span>}
-          options={EOLS}
-          value={eol}
-          onChange={(v) => useStatusBarStore.setState({ eol: v })}
-        />
+        {showEol && (
+          <PopoverPicker
+            trigger={<span>{eol}</span>}
+            options={EOLS}
+            value={eol}
+            onChange={(v) => useStatusBarStore.setState({ eol: v })}
+          />
+        )}
 
-        {/* Language */}
-        <PopoverPicker
-          trigger={<span>{language}</span>}
-          options={LANGUAGES}
-          value={language}
-          onChange={(v) => useStatusBarStore.setState({ language: v })}
-        />
+        {showLanguage && (
+          <PopoverPicker
+            trigger={<span>{language}</span>}
+            options={LANGUAGES}
+            value={language}
+            onChange={(v) => useStatusBarStore.setState({ language: v })}
+          />
+        )}
 
-        {/* Prettier */}
-        <button
-          onClick={() => {
-            const toast = document.createElement('div');
-            toast.textContent = isFormatting ? 'Formatting...' : 'Formatted with Prettier';
-            toast.style.cssText = 'position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:#252526;color:#ccc;padding:8px 16px;border-radius:4px;font-size:13px;z-index:9999;border:1px solid #454545';
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 2000);
-          }}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 4, padding: '0 6px',
-            height: 22, background: 'transparent', border: 'none',
-            color: 'inherit', cursor: 'pointer', fontSize: 12, fontWeight: 400,
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.12)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
-        >
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M1.5 4h1v8h-1V4zm2 0h1.5v8H3.5V4zm2 0h1v8h-1V4zm2 0h2v8h-2V4zm2.5 0h1v8H10V4zm2 0h2.5v8H12V4z" />
-          </svg>
-          <span>{isFormatting ? 'Formatting...' : 'Prettier'}</span>
-        </button>
+        {showPrettier && (
+          <button
+            onClick={() => {
+              const toast = document.createElement('div');
+              toast.textContent = isFormatting ? 'Formatting...' : 'Formatted with Prettier';
+              toast.style.cssText = 'position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:#252526;color:#ccc;padding:8px 16px;border-radius:4px;font-size:13px;z-index:9999;border:1px solid #454545';
+              document.body.appendChild(toast);
+              setTimeout(() => toast.remove(), 2000);
+            }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 4, padding: '0 6px',
+              height: 22, background: 'transparent', border: 'none',
+              color: 'inherit', cursor: 'pointer', fontSize: 12, fontWeight: 400,
+              whiteSpace: 'nowrap',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.12)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M1.5 4h1v8h-1V4zm2 0h1.5v8H3.5V4zm2 0h1v8h-1V4zm2 0h2v8h-2V4zm2.5 0h1v8H10V4zm2 0h2.5v8H12V4z" />
+            </svg>
+            <span>{isFormatting ? 'Formatting...' : 'Prettier'}</span>
+          </button>
+        )}
 
-        {/* Notifications */}
         <StatusBarItem>
           <BellIcon size={14} />
         </StatusBarItem>
@@ -247,6 +267,8 @@ function StatusBarItem({ children }: { children: React.ReactNode }) {
         fontSize: 12,
         fontWeight: 400,
         fontFamily: 'inherit',
+        whiteSpace: 'nowrap',
+        flexShrink: 0,
       }}
       onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.12)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}

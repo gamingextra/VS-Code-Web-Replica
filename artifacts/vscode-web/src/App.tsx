@@ -12,11 +12,21 @@ import { useKeyboardShortcuts, registerShortcut } from '@/hooks/useKeyboardShort
 import { useSidebarStore } from '@/store/sidebarStore';
 import { useTerminalStore } from '@/store/terminalStore';
 import { createDemoWorkspace } from '@/data/demoWorkspace';
+import { useBreakpoint } from '@/hooks/useWindowSize';
 
 export default function App() {
   const { setRoot } = useFileSystemStore();
-  const { toggle: toggleSidebar } = useSidebarStore();
+  const { toggle: toggleSidebar, isVisible: sidebarVisible } = useSidebarStore();
   const { togglePanel } = useTerminalStore();
+  const { isMobile } = useBreakpoint();
+
+  // Auto-collapse sidebar on mobile
+  useEffect(() => {
+    if (isMobile && sidebarVisible) {
+      toggleSidebar();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMobile]);
 
   // Initialize demo workspace
   useEffect(() => {
@@ -59,43 +69,48 @@ export default function App() {
       style={{
         display: 'flex',
         flexDirection: 'column',
+        width: '100vw',
         height: '100vh',
+        maxWidth: '100vw',
+        maxHeight: '100vh',
         overflow: 'hidden',
       }}
     >
       {/* Title Bar */}
       <TitleBar />
 
-      {/* Main area */}
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+      {/* Main area — fills remaining height */}
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', minHeight: 0 }}>
         {/* Activity Bar */}
         <ActivityBar />
 
-        {/* Sidebar */}
+        {/* Sidebar — overlays on mobile */}
         <Sidebar />
 
-        {/* Editor + Panel */}
+        {/* Editor + Panel column */}
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
             flex: 1,
             overflow: 'hidden',
+            minWidth: 0,
+            minHeight: 0,
           }}
         >
           {/* Tab Bar + Editor */}
-          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', minHeight: 0 }}>
             <TabBar />
             <EditorArea />
           </div>
 
           {/* Bottom Panel */}
           <BottomPanel />
-
-          {/* Status Bar */}
-          <StatusBar />
         </div>
       </div>
+
+      {/* Status Bar — always at very bottom */}
+      <StatusBar />
 
       <CommandPalette />
     </div>

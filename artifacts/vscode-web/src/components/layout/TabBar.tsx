@@ -8,14 +8,17 @@ export function TabBar() {
 
   return (
     <div
+      className="tabs-scroll"
       style={{
         height: 35,
         backgroundColor: 'var(--vscode-tab-bg)',
         display: 'flex',
         alignItems: 'flex-end',
-        overflow: 'hidden',
+        overflowX: 'auto',
+        overflowY: 'hidden',
         flexShrink: 0,
         userSelect: 'none',
+        scrollbarWidth: 'thin',
       }}
     >
       {tabs.map((tab) => {
@@ -28,7 +31,7 @@ export function TabBar() {
               display: 'flex',
               alignItems: 'center',
               height: 35,
-              padding: '0 8px 0 12px',
+              padding: '0 6px 0 10px',
               backgroundColor: isActive ? 'var(--vscode-tab-activeBg)' : 'var(--vscode-tab-bg)',
               borderRight: '1px solid var(--vscode-tab-border)',
               borderTop: isActive ? '1px solid var(--vscode-focusBorder)' : '1px solid transparent',
@@ -36,10 +39,10 @@ export function TabBar() {
               fontSize: 13,
               fontWeight: isActive ? 500 : 400,
               cursor: 'pointer',
-              maxWidth: 200,
-              minWidth: 80,
+              maxWidth: 180,
+              minWidth: 60,
               flexShrink: 0,
-              gap: 6,
+              gap: 5,
             }}
           >
             {/* Dirty indicator */}
@@ -55,7 +58,7 @@ export function TabBar() {
                 justifyContent: 'center',
               }}
             >
-              {tab.isDirty ? '\u25CF' : ''}
+              {tab.isDirty ? '●' : ''}
             </span>
 
             {/* Filename */}
@@ -66,6 +69,7 @@ export function TabBar() {
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
                 fontStyle: tab.path.startsWith('Untitled') ? 'italic' : 'normal',
+                minWidth: 0,
               }}
             >
               {tab.name}

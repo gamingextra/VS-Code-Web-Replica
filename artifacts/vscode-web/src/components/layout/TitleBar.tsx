@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useEditorStore } from '@/store/editorStore';
 import { useSidebarStore } from '@/store/sidebarStore';
+import { useWindowSize } from '@/hooks/useWindowSize';
 
 interface MenuItem {
   label?: string;
@@ -18,6 +19,11 @@ export function TitleBar() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLDivElement>(null);
+  const { width } = useWindowSize();
+
+  // On narrow screens, hide some menus to save space
+  const showAllMenus = width >= 640;
+  const showSomeMenus = width >= 400;
 
   // Action handlers
   const handleNewFile = () => {
@@ -28,9 +34,7 @@ export function TitleBar() {
 
   const handleSave = () => {
     const active = useEditorStore.getState().getActiveTab();
-    if (active) {
-      useEditorStore.getState().markClean(active.id);
-    }
+    if (active) useEditorStore.getState().markClean(active.id);
     setActiveMenu(null);
   };
 
@@ -49,12 +53,7 @@ export function TitleBar() {
   };
 
   const handleOpenFolder = () => {
-    // Show a toast since we can't access filesystem in browser
-    const toast = document.createElement('div');
-    toast.textContent = 'Open Folder not implemented in web';
-    toast.style.cssText = 'position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:#252526;color:#ccc;padding:8px 16px;border-radius:4px;font-size:13px;z-index:9999;border:1px solid #454545';
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 2500);
+    showToast('Open Folder not implemented in web');
     setActiveMenu(null);
   };
 
@@ -85,7 +84,6 @@ export function TitleBar() {
 
   const handleCommandPalette = () => {
     setActiveMenu(null);
-    // Dispatch event that the app can listen for
     window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'commandPalette' } }));
   };
 
@@ -114,44 +112,20 @@ export function TitleBar() {
     setActiveMenu(null);
   };
 
-  const handleWelcome = () => {
-    window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'welcome' } }));
-    setActiveMenu(null);
-  };
-
-  const handleNewWindow = () => {
-    const toast = document.createElement('div');
-    toast.textContent = 'New Window not available in web';
-    toast.style.cssText = 'position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:#252526;color:#ccc;padding:8px 16px;border-radius:4px;font-size:13px;z-index:9999;border:1px solid #454545';
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 2000);
-    setActiveMenu(null);
-  };
+  const handleNewWindow = () => { showToast('New Window not available in web'); setActiveMenu(null); };
 
   const handleOpenFile = () => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.onchange = () => {
-      const toast = document.createElement('div');
-      toast.textContent = 'File upload not implemented';
-      toast.style.cssText = 'position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:#252526;color:#ccc;padding:8px 16px;border-radius:4px;font-size:13px;z-index:9999;border:1px solid #454545';
-      document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 2000);
-    };
+    input.onchange = () => { showToast('File upload not implemented'); };
     input.click();
     setActiveMenu(null);
   };
 
-  const handleExit = () => {
-    setActiveMenu(null);
-  };
+  const handleExit = () => setActiveMenu(null);
 
   const handleClipboard = (type: string) => () => {
-    const toast = document.createElement('div');
-    toast.textContent = `${type} — clipboard not available in browser`;
-    toast.style.cssText = 'position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:#252526;color:#ccc;padding:8px 16px;border-radius:4px;font-size:13px;z-index:9999;border:1px solid #454545';
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 1500);
+    showToast(`${type} — use browser shortcut`);
     setActiveMenu(null);
   };
 
@@ -160,26 +134,17 @@ export function TitleBar() {
     setActiveMenu(null);
   };
 
-  const handleGoToLine = () => {
-    const toast = document.createElement('div');
-    toast.textContent = 'Go to Line not implemented';
-    toast.style.cssText = 'position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:#252526;color:#ccc;padding:8px 16px;border-radius:4px;font-size:13px;z-index:9999;border:1px solid #454545';
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 1500);
-    setActiveMenu(null);
-  };
+  const handleGoToLine = () => { showToast('Go to Line not implemented'); setActiveMenu(null); };
 
   const handleRunWithoutDebug = () => {
     window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'startDebugging' } }));
     setActiveMenu(null);
   };
 
-  const handleStopDebugging = () => {
-    const toast = document.createElement('div');
-    toast.textContent = 'No active debug session';
-    toast.style.cssText = 'position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:#252526;color:#ccc;padding:8px 16px;border-radius:4px;font-size:13px;z-index:9999;border:1px solid #454545';
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 1500);
+  const handleStopDebugging = () => { showToast('No active debug session'); setActiveMenu(null); };
+
+  const handleWelcome = () => {
+    window.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'welcome' } }));
     setActiveMenu(null);
   };
 
@@ -189,7 +154,7 @@ export function TitleBar() {
     setActiveMenu(null);
   };
 
-  const MENU_DEFS: MenuDef[] = [
+  const ALL_MENUS: MenuDef[] = [
     {
       name: 'File',
       items: [
@@ -277,14 +242,18 @@ export function TitleBar() {
     },
   ];
 
-  // Click outside to close menu
+  // On narrow screens: show only core menus
+  const MENU_DEFS = showAllMenus
+    ? ALL_MENUS
+    : showSomeMenus
+      ? ALL_MENUS.filter((m) => ['File', 'Edit', 'View', 'Terminal', 'Help'].includes(m.name))
+      : ALL_MENUS.filter((m) => ['File', 'View', 'Terminal'].includes(m.name));
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
-        menuRef.current &&
-        !menuRef.current.contains(e.target as Node) &&
-        menuButtonRef.current &&
-        !menuButtonRef.current.contains(e.target as Node)
+        menuRef.current && !menuRef.current.contains(e.target as Node) &&
+        menuButtonRef.current && !menuButtonRef.current.contains(e.target as Node)
       ) {
         setActiveMenu(null);
       }
@@ -292,16 +261,6 @@ export function TitleBar() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const dragStyle: React.CSSProperties = {
-    // @ts-expect-error WebkitAppRegion is not standard
-    WebkitAppRegion: 'drag' as const,
-  };
-
-  const noDragStyle: React.CSSProperties = {
-    // @ts-expect-error WebkitAppRegion is not standard
-    WebkitAppRegion: 'no-drag' as const,
-  };
 
   return (
     <div
@@ -316,28 +275,28 @@ export function TitleBar() {
         userSelect: 'none',
         zIndex: 100,
         position: 'relative',
-        ...dragStyle,
+        overflow: 'hidden',
       }}
     >
-      {/* Menu buttons */}
+      {/* Menu buttons — scrollable on very narrow */}
       <div
         ref={menuButtonRef}
         style={{
           display: 'flex',
           alignItems: 'center',
-          padding: '0 8px',
-          fontSize: 13,
-          fontWeight: 400,
-          userSelect: 'none',
-          ...noDragStyle,
+          overflowX: 'auto',
+          overflowY: 'hidden',
+          scrollbarWidth: 'none',
+          flexShrink: 1,
+          minWidth: 0,
         }}
       >
         {MENU_DEFS.map((menu) => (
-          <div key={menu.name} style={{ position: 'relative' }}>
+          <div key={menu.name} style={{ position: 'relative', flexShrink: 0 }}>
             <button
               onClick={() => setActiveMenu(activeMenu === menu.name ? null : menu.name)}
               style={{
-                padding: '4px 10px',
+                padding: '4px 8px',
                 background: activeMenu === menu.name ? 'var(--vscode-menu-hover)' : 'transparent',
                 border: 'none',
                 color: 'inherit',
@@ -349,9 +308,7 @@ export function TitleBar() {
                 whiteSpace: 'nowrap',
               }}
               onMouseEnter={() => {
-                if (activeMenu && activeMenu !== menu.name) {
-                  setActiveMenu(menu.name);
-                }
+                if (activeMenu && activeMenu !== menu.name) setActiveMenu(menu.name);
               }}
             >
               {menu.name}
@@ -362,29 +319,26 @@ export function TitleBar() {
               <div
                 ref={menuRef}
                 style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
+                  position: 'fixed',
+                  top: 28,
                   backgroundColor: 'var(--vscode-menu-bg)',
                   border: '1px solid var(--vscode-border)',
                   borderRadius: 4,
                   boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                  zIndex: 200,
+                  zIndex: 1000,
                   minWidth: 200,
                   padding: '4px 0',
                   fontSize: 13,
                   fontWeight: 400,
+                  maxHeight: 'calc(100vh - 40px)',
+                  overflowY: 'auto',
                 }}
               >
                 {menu.items.map((item, idx) =>
                   item.separator ? (
                     <div
                       key={idx}
-                      style={{
-                        height: 1,
-                        backgroundColor: 'var(--vscode-border)',
-                        margin: '4px 0',
-                      }}
+                      style={{ height: 1, backgroundColor: 'var(--vscode-border)', margin: '4px 0' }}
                     />
                   ) : (
                     <div
@@ -398,13 +352,11 @@ export function TitleBar() {
                         alignItems: 'center',
                         gap: 24,
                         whiteSpace: 'nowrap',
-                        color: item.action ? 'var(--vscode-fg)' : 'var(--vscode-fg)',
+                        color: 'var(--vscode-fg)',
                         opacity: item.action ? 1 : 0.5,
                       }}
                       onMouseEnter={(e) => {
-                        if (item.action) {
-                          e.currentTarget.style.backgroundColor = 'var(--vscode-menu-hover)';
-                        }
+                        if (item.action) e.currentTarget.style.backgroundColor = 'var(--vscode-menu-hover)';
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = 'transparent';
@@ -412,14 +364,7 @@ export function TitleBar() {
                     >
                       <span>{item.label}</span>
                       {item.shortcut && (
-                        <span
-                          style={{
-                            fontSize: 12,
-                            opacity: 0.6,
-                            marginLeft: 'auto',
-                            fontFamily: '"Cascadia Code", "SF Mono", Menlo, Consolas, monospace',
-                          }}
-                        >
+                        <span style={{ fontSize: 11, opacity: 0.6, marginLeft: 'auto', fontFamily: '"Cascadia Code", monospace' }}>
                           {item.shortcut}
                         </span>
                       )}
@@ -433,4 +378,12 @@ export function TitleBar() {
       </div>
     </div>
   );
+}
+
+function showToast(msg: string) {
+  const toast = document.createElement('div');
+  toast.textContent = msg;
+  toast.style.cssText = 'position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:#252526;color:#ccc;padding:8px 16px;border-radius:4px;font-size:13px;z-index:9999;border:1px solid #454545;pointer-events:none';
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2000);
 }
