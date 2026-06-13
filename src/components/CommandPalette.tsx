@@ -8,6 +8,8 @@ import { useFileSystemStore, type FileNode } from '@/store/fileSystemStore';
 import { useThemeStore, type Theme } from '@/store/themeStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useTerminalStore } from '@/store/terminalStore';
+import { useAICompletionStore } from '@/store/aiCompletionStore';
+import { useCodeExecutionStore } from '@/store/codeExecutionStore';
 import { useBreakpoint } from '@/hooks/useWindowSize';
 
 interface CommandItem {
@@ -28,6 +30,8 @@ export function CommandPalette() {
   const theme = useThemeStore();
   const settings = useSettingsStore();
   const terminal = useTerminalStore();
+  const ai = useAICompletionStore();
+  const execution = useCodeExecutionStore();
   const { isMobile } = useBreakpoint();
 
   useEffect(() => {
@@ -78,6 +82,12 @@ export function CommandPalette() {
     { category: 'Preferences', label: 'Color Theme: Solarized Dark', action: () => run(() => theme.setTheme('solarized')) },
     { category: 'Preferences', label: 'Color Theme: Monokai', action: () => run(() => theme.setTheme('monokai')) },
     { category: 'Preferences', label: 'Color Theme: GitHub', action: () => run(() => theme.setTheme('github')) },
+    { category: 'AI', label: 'Toggle AI Completions', action: () => run(() => ai.setEnabled(!ai.enabled)) },
+    { category: 'AI', label: 'Accept AI Suggestion', shortcut: 'Tab', action: () => run(() => { if (ai.currentCompletion) { ai.acceptCompletion(); } }) },
+    { category: 'AI', label: 'Dismiss AI Suggestion', shortcut: 'Esc', action: () => run(() => ai.dismissCompletion()) },
+    { category: 'Execution', label: 'Run Code in Sandbox', action: () => run(() => { const t = editor.getActiveTab(); if (t) execution.execute(t.content, t.path.split('.').pop() || 'plaintext'); }) },
+    { category: 'Execution', label: 'Clear Execution Results', action: () => run(() => execution.clearResults()) },
+    { category: 'Execution', label: 'Toggle Execution Panel', action: () => run(() => execution.togglePanel()) },
   ];
 
   const allFiles: { name: string; path: string; content: string; language: string }[] = [];

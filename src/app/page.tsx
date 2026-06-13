@@ -23,8 +23,13 @@ import { useTerminalStore } from '@/store/terminalStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useAuthStore } from '@/store/authStore';
 import { useNotificationStore } from '@/store/notificationStore';
+import { useAICompletionStore } from '@/store/aiCompletionStore';
+import { useCodeExecutionStore } from '@/store/codeExecutionStore';
+import { useWebSocketStore } from '@/store/websocketStore';
 import { createDemoWorkspace } from '@/data/demoWorkspace';
 import { useBreakpoint } from '@/hooks/useWindowSize';
+import { AICompletionIndicator } from '@/components/ai/AICompletionIndicator';
+import { CodeExecutionPanel } from '@/components/execution/CodeExecutionPanel';
 
 function KeyboardShortcutsPanel({ onClose }: { onClose: () => void }) {
   const { isMobile } = useBreakpoint();
@@ -165,6 +170,10 @@ export default function Home() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [kbShortcutsOpen, setKbShortcutsOpen] = useState(false);
   const [showTrustDialog, setShowTrustDialog] = useState(false);
+  const [showExecPanel, setShowExecPanel] = useState(false);
+  const aiStore = useAICompletionStore();
+  const execStore = useCodeExecutionStore();
+  const wsStore = useWebSocketStore();
   const [workspaceTrusted, setWorkspaceTrusted] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('vscode-workspace-trusted') === 'true';
@@ -177,6 +186,37 @@ export default function Home() {
   useEffect(() => {
     if (isMobile && sidebarVisible) toggleSidebar();
   }, [isMobile, sidebarVisible, toggleSidebar]);
+
+  // Simulate WS reconnection events
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (Math.random() < 0.005) {
+        wsStore.reconnect();
+      }
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [wsStore]);
+
+  // Listen for editor content changes to trigger AI completions
+  useEffect(() => {
+    const unsubscribe = useEditorStore.subscribe((state, prev) => {
+      if (!aiStore.enabled) return;
+      for (const tab of state.tabs) {
+        const prevTab = prev.tabs.find(t => t.id === tab.id);
+        if (tab.content !== prevTab?.content && tab.id === (state.splits[state.activeSplitIndex]?.activeTabId)) {
+          const lines = tab.content.split('\n');
+          const cursorLine = lines[lines.length - 1] || '';
+          aiStore.requestCompletion({
+            prefix: cursorLine,
+            suffix: '',
+            language: tab.path.split('.').pop() || 'plaintext',
+            fileName: tab.name,
+          });
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, [aiStore]);
 
   // Initialize demo workspace
   useEffect(() => {
@@ -238,6 +278,28 @@ export default function Home() {
     ];
     return () => unsubs.forEach((u) => u());
   }, [toggleSidebar, togglePanel, settings]);
+
+  // AI completion keyboard shortcuts (Tab to accept, Esc to dismiss)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Tab' && aiStore.currentCompletion) {
+        e.preventDefault();
+        const completion = aiStore.currentCompletion;
+        aiStore.acceptCompletion();
+        // Insert completion into active editor
+        const active = useEditorStore.getState().getActiveTab();
+        if (active) {
+          useEditorStore.getState().updateTabContent(active.id, active.content + '\n' + completion.text);
+        }
+      }
+      if (e.key === 'Escape' && aiStore.currentCompletion) {
+        e.preventDefault();
+        aiStore.dismissCompletion();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [aiStore]);
 
   useKeyboardShortcuts();
 
@@ -315,12 +377,14 @@ export default function Home() {
         {!zenMode && <ActivityBar />}
         {!zenMode && <Sidebar />}
 
-        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', minWidth: 0, minHeight: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', minWidth: 0, minHeight: 0, position: 'relative' }}>
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', minHeight: 0 }}>
             <TabBar />
             <EditorArea />
           </div>
           {!zenMode && <BottomPanel />}
+          {!zenMode && <CodeExecutionPanel />}
+          <AICompletionIndicator />
         </div>
       </div>
 
@@ -353,6 +417,40 @@ export default function Home() {
         >
           Zen Mode — Press Ctrl+K Z or tap to exit
         </div>
+      )}
+
+      {/* Run Code floating action button on mobile */}
+      {isMobile && !zenMode && (
+        <button
+          onClick={() => {
+            const active = useEditorStore.getState().getActiveTab();
+            if (active?.content) {
+              execStore.execute(active.content, active.path.split('.').pop() || 'plaintext');
+            }
+          }}
+          title="Run Code"
+          style={{
+            position: 'fixed',
+            bottom: isMobile ? 100 : 40,
+            right: 16,
+            width: 44,
+            height: 44,
+            borderRadius: '50%',
+            backgroundColor: 'var(--vscode-button-bg)',
+            border: 'none',
+            color: '#fff',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+            zIndex: 50,
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M3.5 2.5l10 5.5-10 5.5V2.5z" />
+          </svg>
+        </button>
       )}
 
       <Toaster

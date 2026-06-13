@@ -6,6 +6,8 @@ import { useSidebarStore } from '@/store/sidebarStore';
 import { useNotificationStore } from '@/store/notificationStore';
 import { GitBranchIcon, WarningIcon, ErrorIcon, BellIcon, CheckIcon } from '@/components/icons';
 import { useBreakpoint } from '@/hooks/useWindowSize';
+import { WebSocketStatusIndicator } from '@/components/ws/WebSocketStatusIndicator';
+import { AICompletionToggle } from '@/components/ai/AICompletionIndicator';
 
 const BRANCHES = ['main', 'develop', 'feature/auth'];
 const INDENTS = ['Spaces: 2', 'Spaces: 4', 'Spaces: 8', 'Tab'];
@@ -242,6 +244,8 @@ export function StatusBar() {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 0, flexShrink: 0 }}>
+        <WebSocketStatusIndicator />
+
         {showCursorPos && (
           <StatusBarItem fontSize={isMobile ? 11 : 12}>
             <span>Ln {line}, Col {col}</span>
@@ -283,6 +287,8 @@ export function StatusBar() {
             onChange={(v) => useStatusBarStore.setState({ language: v })}
           />
         )}
+
+        <AICompletionToggle />
 
         {/* Notification Bell */}
         <button

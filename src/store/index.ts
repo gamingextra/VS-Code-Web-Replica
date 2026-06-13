@@ -26,3 +26,11 @@ export type { Notification } from './notificationStore';
 
 export { usePortStore } from './portStore';
 export type { PortForward } from './portStore';
+
+export { useAICompletionStore } from './aiCompletionStore';
+
+export { useCodeExecutionStore } from './codeExecutionStore';
+export type { ExecutionResult } from './codeExecutionStore';
+
+export { useWebSocketStore } from './websocketStore';
+export type { WSStatus, WSMessage } from './websocketStore';

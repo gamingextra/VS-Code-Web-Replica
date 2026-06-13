@@ -42,9 +42,24 @@ export function SearchView() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [collapsedFiles, setCollapsedFiles] = useState<Set<string>>(new Set());
+  const [indexStatus, setIndexStatus] = useState<'idle' | 'indexing' | 'indexed'>('idle');
+  const [searchTime, setSearchTime] = useState<number | null>(null);
+  const [fileCount, setFileCount] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const allFiles = useMemo(() => getAllFiles(root), [root]);
+
+  // Simulate file indexing
+  useEffect(() => {
+    if (allFiles.length > 0 && indexStatus === 'idle') {
+      setFileCount(allFiles.length);
+      setIndexStatus('indexing');
+      const timer = setTimeout(() => {
+        setIndexStatus('indexed');
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [allFiles.length, indexStatus]);
 
   const buildRegex = useCallback((q: string): RegExp | null => {
     try {
@@ -56,9 +71,10 @@ export function SearchView() {
   }, [useRegex, matchCase, wholeWord]);
 
   const performSearch = useCallback(() => {
-    if (!query.trim()) { setResults([]); setHasSearched(true); return; }
+    if (!query.trim()) { setResults([]); setHasSearched(true); setSearchTime(null); return; }
     const regex = buildRegex(query);
-    if (!regex) { setResults([]); setHasSearched(true); return; }
+    if (!regex) { setResults([]); setHasSearched(true); setSearchTime(null); return; }
+    const startTime = performance.now();
     const searchResults: SearchResult[] = [];
     for (const file of allFiles) {
       if (!file.content) continue;
@@ -73,6 +89,8 @@ export function SearchView() {
         }
       }
     }
+    const elapsed = performance.now() - startTime;
+    setSearchTime(Math.round(elapsed * 100) / 100);
     setResults(searchResults);
     setHasSearched(true);
   }, [query, allFiles, buildRegex]);
@@ -131,7 +149,24 @@ export function SearchView() {
     <div className="flex flex-col h-full text-[var(--vscode-fg)]">
       <div className="flex items-center justify-between px-4 py-2 flex-shrink-0">
         <span className="text-xs font-bold tracking-wide opacity-80">SEARCH</span>
-        {hasSearched && totalResults > 0 && <span className="text-[10px] opacity-50">{totalResults} result{totalResults !== 1 ? 's' : ''} in {totalFiles} file{totalFiles !== 1 ? 's' : ''}</span>}
+        <div className="flex items-center gap-2">
+          {indexStatus === 'indexing' && (
+            <span className="search-index-badge bg-[var(--vscode-warning)] text-black ws-connecting">
+              Indexing...
+            </span>
+          )}
+          {indexStatus === 'indexed' && (
+            <span className="search-index-badge bg-[var(--vscode-success)] text-black">
+              {fileCount} files indexed
+            </span>
+          )}
+          {hasSearched && totalResults > 0 && searchTime !== null && (
+            <span className="text-[10px] opacity-50">{totalResults} result{totalResults !== 1 ? 's' : ''} in {totalFiles} file{totalFiles !== 1 ? 's' : ''} ({searchTime}ms)</span>
+          )}
+          {hasSearched && totalResults > 0 && searchTime === null && (
+            <span className="text-[10px] opacity-50">{totalResults} result{totalResults !== 1 ? 's' : ''} in {totalFiles} file{totalFiles !== 1 ? 's' : ''}</span>
+          )}
+        </div>
       </div>
 
       <div className="px-3 space-y-1 flex-shrink-0">

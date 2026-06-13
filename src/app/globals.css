@@ -462,6 +462,162 @@ html {
   }
 }
 
+/* ===== Advanced Responsive Utilities ===== */
+
+/* Virtual keyboard handling - shrink viewport when keyboard appears */
+@supports (height: 100svh) {
+  .keyboard-aware {
+    height: 100svh;
+  }
+}
+
+/* Prevent iOS rubber-band scrolling on the main container */
+.app-container {
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
+/* Allow scrolling within scrollable children */
+.scrollable-child {
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* AI inline completion ghost text */
+.ai-ghost-text {
+  color: rgba(255, 255, 255, 0.25);
+  font-style: italic;
+  pointer-events: none;
+}
+
+/* Code execution output panel */
+.execution-output {
+  font-family: 'Cascadia Code', 'SF Mono', Menlo, Monaco, 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* File search index indicator */
+.search-index-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* WebSocket connection pulse animation */
+@keyframes ws-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.ws-connecting {
+  animation: ws-pulse 1.2s ease-in-out infinite;
+}
+
+/* Monaco editor mobile fixes */
+@media (max-width: 640px) {
+  .monaco-editor .scroll-decoration {
+    display: none !important;
+  }
+  .monaco-editor .minimap {
+    display: none !important;
+  }
+}
+
+/* Improve mobile scrolling performance */
+@media (max-width: 640px) {
+  * {
+    -webkit-transform: translateZ(0);
+  }
+  .sidebar-view,
+  .editor-area,
+  .bottom-panel {
+    will-change: transform;
+  }
+}
+
+/* Foldable device support */
+@media (spanning: single-fold-vertical) {
+  .app-container {
+    display: grid;
+    grid-template-columns: env(fold-left) 1fr;
+  }
+}
+
+/* High DPI / Retina display fixes */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .monaco-editor {
+    -webkit-font-smoothing: subpixel-antialiased;
+  }
+}
+
+/* Very small screen (< 360px) adjustments */
+@media (max-width: 359px) {
+  .sidebar-overlay {
+    width: 95vw !important;
+  }
+  .command-palette-dialog {
+    width: 98vw !important;
+  }
+  .tab-bar-tab {
+    max-width: 90px !important;
+    min-width: 40px !important;
+    font-size: 11px !important;
+  }
+}
+
+/* Print styles - hide non-essential UI */
+@media print {
+  .activity-bar,
+  .sidebar,
+  .status-bar,
+  .bottom-panel,
+  .title-bar,
+  .mobile-bottom-nav {
+    display: none !important;
+  }
+  .editor-area {
+    width: 100% !important;
+  }
+}
+
+/* Desktop split layout refinement */
+@media (min-width: 1024px) {
+  .editor-split-pane {
+    min-width: 280px;
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus-visible for keyboard navigation */
+:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+/* Remove focus outline for mouse clicks */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
