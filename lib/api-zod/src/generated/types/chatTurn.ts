@@ -5,7 +5,9 @@
  * VS Code Web API
  * OpenAPI spec version: 0.1.0
  */
+import type { ChatTurnRole } from './chatTurnRole';
 
-export interface HealthStatus {
-  status: string;
+export interface ChatTurn {
+  role: ChatTurnRole;
+  content: string;
 }

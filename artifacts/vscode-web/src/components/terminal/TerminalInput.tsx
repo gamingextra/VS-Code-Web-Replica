@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 
 interface Props {
-  onSubmit: (cmd: string) => void;
+  onSubmit: (cmd: string) => void | Promise<void>;
   onInterrupt: () => void;
   history: string[];
   cwd: string;

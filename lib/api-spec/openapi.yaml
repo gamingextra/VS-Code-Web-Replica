@@ -1,22 +1,26 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: VS Code Web API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: files
+    description: Virtual file system operations
+  - name: terminal
+    description: Terminal command execution
+  - name: claude
+    description: Claude AI chat streaming
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +28,138 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /files:
+    get:
+      operationId: listFiles
+      tags: [files]
+      summary: List all files in the virtual workspace
+      responses:
+        "200":
+          description: File tree
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FileNode"
+    post:
+      operationId: createFile
+      tags: [files]
+      summary: Create a new file or folder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FileNodeInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileNode"
+
+  /files/{id}:
+    get:
+      operationId: getFile
+      tags: [files]
+      summary: Get a file's content
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: File content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileNode"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateFile
+      tags: [files]
+      summary: Update a file's content or name
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FileNodeUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileNode"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteFile
+      tags: [files]
+      summary: Delete a file or folder
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
+  /terminal/exec:
+    post:
+      operationId: execCommand
+      tags: [terminal]
+      summary: Execute a shell command
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TerminalCommand"
+      responses:
+        "200":
+          description: Command output
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TerminalResult"
+
+  /claude/chat:
+    post:
+      operationId: claudeChat
+      tags: [claude]
+      summary: Send a message to Claude (SSE streaming)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClaudeMessage"
+      responses:
+        "200":
+          description: SSE stream of Claude response tokens
+          content:
+            text/event-stream:
+              schema:
+                type: string
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +170,116 @@ components:
       required:
         - status
 
+    FileNode:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [file, folder]
+        path:
+          type: string
+        content:
+          type: ["string", "null"]
+        language:
+          type: ["string", "null"]
+        parentId:
+          type: ["string", "null"]
+        isOpen:
+          type: ["boolean", "null"]
+        children:
+          type: ["array", "null"]
+          items:
+            $ref: "#/components/schemas/FileNode"
+      required:
+        - id
+        - name
+        - type
+        - path
+
+    FileNodeInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          enum: [file, folder]
+        parentId:
+          type: ["string", "null"]
+        content:
+          type: string
+        language:
+          type: string
+      required:
+        - name
+        - type
+
+    FileNodeUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        content:
+          type: string
+        language:
+          type: string
+
+    TerminalCommand:
+      type: object
+      properties:
+        command:
+          type: string
+          minLength: 1
+        cwd:
+          type: string
+      required:
+        - command
+
+    TerminalResult:
+      type: object
+      properties:
+        stdout:
+          type: string
+        stderr:
+          type: string
+        exitCode:
+          type: integer
+        cwd:
+          type: string
+      required:
+        - stdout
+        - stderr
+        - exitCode
+        - cwd
+
+    ClaudeMessage:
+      type: object
+      properties:
+        message:
+          type: string
+          minLength: 1
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatTurn"
+        systemPrompt:
+          type: string
+      required:
+        - message
+
+    ChatTurn:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+      required:
+        - role
+        - content
