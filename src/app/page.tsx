@@ -28,6 +28,7 @@ import { useCodeExecutionStore } from '@/store/codeExecutionStore';
 import { useWebSocketStore } from '@/store/websocketStore';
 import { createDemoWorkspace } from '@/data/demoWorkspace';
 import { useBreakpoint } from '@/hooks/useWindowSize';
+import { useGlobalSwipeGesture } from '@/hooks/useSwipeGesture';
 import { AICompletionIndicator } from '@/components/ai/AICompletionIndicator';
 import { CodeExecutionPanel } from '@/components/execution/CodeExecutionPanel';
 
@@ -90,6 +91,7 @@ function KeyboardShortcutsPanel({ onClose }: { onClose: () => void }) {
 // Mobile bottom navigation bar (replaces ActivityBar on mobile)
 function MobileBottomNav() {
   const { activeView, isVisible, setView, toggle } = useSidebarStore();
+  const [activePress, setActivePress] = useState<string | null>(null);
 
   const handleNavClick = (view: string) => {
     if (isVisible && activeView === view) {
@@ -122,19 +124,24 @@ function MobileBottomNav() {
           <button
             key={view}
             onClick={() => handleNavClick(view)}
+            onTouchStart={() => setActivePress(view)}
+            onTouchEnd={() => setActivePress(null)}
             style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
               gap: 2,
-              background: 'transparent',
+              background: activePress === view ? 'rgba(255,255,255,0.05)' : 'transparent',
               border: 'none',
               color: isActive ? 'var(--vscode-activityBar-active)' : '#858585',
               cursor: 'pointer',
               flex: 1,
               height: 48,
               position: 'relative',
+              transition: 'background-color 0.1s',
+              // Visual pulse on tap - haptic-like feedback
+              transform: activePress === view ? 'scale(0.95)' : 'scale(1)',
             }}
           >
             {isActive && (
@@ -166,7 +173,7 @@ export default function Home() {
   const settings = useSettingsStore();
   const { isAuthenticated } = useAuthStore();
   const { addNotification } = useNotificationStore();
-  const { isMobile } = useBreakpoint();
+  const { isMobile, isLandscape } = useBreakpoint();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [kbShortcutsOpen, setKbShortcutsOpen] = useState(false);
   const [showTrustDialog, setShowTrustDialog] = useState(false);
@@ -181,6 +188,19 @@ export default function Home() {
     return false;
   });
   const autoSaveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
+  // Edge swipe to open sidebar on mobile
+  useGlobalSwipeGesture({
+    onSwipeRight: () => {
+      if (isMobile && !sidebarVisible) {
+        toggleSidebar();
+      }
+    },
+    minDistance: 60,
+    minVelocity: 0.2,
+    enableLeftEdge: true,
+    leftEdgeZone: 20,
+  });
 
   // Auto-collapse sidebar on mobile
   useEffect(() => {
@@ -364,11 +384,14 @@ export default function Home() {
 
   return (
     <div
+      className="app-container keyboard-aware"
       style={{
         display: 'flex', flexDirection: 'column',
         width: '100vw', height: '100vh',
         maxWidth: '100vw', maxHeight: '100vh',
         overflow: 'hidden',
+        paddingLeft: 'env(safe-area-inset-left, 0px)',
+        paddingRight: 'env(safe-area-inset-right, 0px)',
       }}
     >
       {!zenMode && <TitleBar />}

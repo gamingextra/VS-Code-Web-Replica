@@ -8,21 +8,53 @@ import { SCMView } from '@/components/sidebar/SCMView';
 import { RunDebugView } from '@/components/sidebar/RunDebugView';
 import { ExtensionsView } from '@/components/sidebar/ExtensionsView';
 import { useBreakpoint } from '@/hooks/useWindowSize';
+import { useSwipeGesture } from '@/hooks/useSwipeGesture';
 
 const MIN_WIDTH = 120;
 const MAX_WIDTH_FRACTION = 0.7;
 const MOBILE_WIDTH_FRACTION = 0.85;
+const TABLET_COMPACT_WIDTH = 48;
 
 export function Sidebar() {
   const { isVisible, width, setWidth, activeView, toggle } = useSidebarStore();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const [isResizing, setIsResizing] = useState(false);
+  const [isSlidingOut, setIsSlidingOut] = useState(false);
   const { isMobile, isTablet, width: vw } = useBreakpoint();
 
   const maxWidth = Math.floor(vw * (isMobile ? MOBILE_WIDTH_FRACTION : MAX_WIDTH_FRACTION));
-  const effectiveWidth = isMobile ? Math.min(Math.max(vw * 0.8, 240), maxWidth) : Math.min(Math.max(width, MIN_WIDTH), maxWidth);
+  const effectiveWidth = isMobile
+    ? Math.min(Math.max(vw * 0.8, 240), maxWidth)
+    : isTablet
+    ? Math.min(width, TABLET_COMPACT_WIDTH)
+    : Math.min(Math.max(width, MIN_WIDTH), maxWidth);
 
   const isOverlay = isMobile;
+  const isCompactTablet = isTablet;
+
+  // Swipe gesture to close sidebar on mobile
+  useSwipeGesture(sidebarRef, {
+    onSwipeRight: () => {
+      // On mobile, swiping right on sidebar closes it
+      if (isOverlay && isVisible) {
+        handleSlideClose();
+      }
+    },
+    minDistance: 60,
+    minVelocity: 0.2,
+  });
+
+  const handleSlideClose = useCallback(() => {
+    if (isOverlay) {
+      setIsSlidingOut(true);
+      setTimeout(() => {
+        setIsSlidingOut(false);
+        toggle();
+      }, 200);
+    } else {
+      toggle();
+    }
+  }, [isOverlay, toggle]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (isOverlay) return;
@@ -80,13 +112,52 @@ export function Sidebar() {
     return () => window.removeEventListener('keydown', onKey);
   }, [isOverlay, isVisible, toggle]);
 
-  // Close sidebar on outside click on mobile
-  useEffect(() => {
-    if (!isOverlay || !isVisible) return;
-    // Handled by backdrop click
-  }, [isOverlay, isVisible]);
-
   if (!isVisible) return null;
+
+  // Compact tablet mode: show only icons
+  if (isCompactTablet && !isMobile) {
+    return (
+      <div
+        ref={sidebarRef}
+        style={{
+          width: TABLET_COMPACT_WIDTH,
+          backgroundColor: 'var(--vscode-sidebar-bg)',
+          display: 'flex',
+          flexDirection: 'column',
+          flexShrink: 0,
+          position: 'relative',
+          borderRight: '1px solid var(--vscode-border)',
+          userSelect: 'none',
+          overflow: 'hidden',
+        }}
+      >
+        <div style={{ flex: 1, overflow: 'hidden' }}>
+          {activeView === 'explorer' && <ExplorerView compact />}
+          {activeView === 'search' && <SearchView />}
+          {activeView === 'scm' && <SCMView />}
+          {activeView === 'run' && <RunDebugView />}
+          {activeView === 'extensions' && <ExtensionsView />}
+        </div>
+
+        {/* Resize handle */}
+        <div
+          onMouseDown={handleMouseDown}
+          onTouchStart={handleTouchStart}
+          style={{
+            position: 'absolute',
+            right: 0,
+            top: 0,
+            bottom: 0,
+            width: 4,
+            cursor: 'col-resize',
+            zIndex: 10,
+            backgroundColor: isResizing ? 'var(--vscode-sash-hover)' : 'transparent',
+            transition: isResizing ? 'none' : 'background-color 0.15s',
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -117,10 +188,15 @@ export function Sidebar() {
           zIndex: isOverlay ? 50 : undefined,
           userSelect: 'none',
           boxShadow: isOverlay ? '4px 0 16px rgba(0,0,0,0.4)' : undefined,
-          animation: isOverlay ? 'slideInLeft 0.2s ease-out' : undefined,
+          transform: isOverlay
+            ? isSlidingOut
+              ? 'translateX(-100%) translateZ(0)'
+              : 'translateX(0) translateZ(0)'
+            : undefined,
+          transition: isOverlay ? 'transform 0.2s ease-out' : undefined,
         }}
       >
-        <div style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
+        <div style={{ flex: 1, overflow: 'auto', minHeight: 0, WebkitOverflowScrolling: 'touch' }}>
           {activeView === 'explorer' && <ExplorerView />}
           {activeView === 'search' && <SearchView />}
           {activeView === 'scm' && <SCMView />}
@@ -146,16 +222,16 @@ export function Sidebar() {
           />
         )}
 
-        {/* Close button on mobile overlay */}
+        {/* Close button on mobile overlay - 44x44 touch target */}
         {isOverlay && (
           <button
-            onClick={toggle}
+            onClick={handleSlideClose}
             style={{
               position: 'absolute',
-              top: 8,
-              right: 8,
-              width: 28,
-              height: 28,
+              top: 4,
+              right: 4,
+              width: 44,
+              height: 44,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -172,13 +248,6 @@ export function Sidebar() {
           </button>
         )}
       </div>
-
-      <style>{`
-        @keyframes slideInLeft {
-          from { transform: translateX(-100%); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
-        }
-      `}</style>
     </>
   );
 }

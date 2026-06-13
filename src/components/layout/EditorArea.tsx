@@ -141,7 +141,7 @@ function SplitPane({ split, splitIndex, isActive, showDivider, showClose }: Spli
   const { tabs, updateTabContent, markClean, setActiveSplitIndex, closeSplit, setActiveTab } = useEditorStore();
   const settings = useSettingsStore();
   const { theme } = useThemeStore();
-  const { isMobile } = useBreakpoint();
+  const { isMobile, isSmallMobile } = useBreakpoint();
   const monacoRef = useRef<typeof monaco | null>(null);
   const localEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const themesRegistered = useRef(false);
@@ -169,24 +169,26 @@ function SplitPane({ split, splitIndex, isActive, showDivider, showClose }: Spli
     const editor = localEditorRef.current;
     if (!editor) return;
     editor.updateOptions({
-      fontSize: settings.fontSize,
+      fontSize: isMobile ? 12 : settings.fontSize,
       fontFamily: settings.fontFamily,
       fontLigatures: settings.fontLigatures,
-      wordWrap: settings.wordWrap,
-      minimap: { enabled: settings.minimap },
-      lineNumbers: settings.lineNumbers,
+      wordWrap: isMobile ? 'on' : settings.wordWrap,
+      minimap: { enabled: isMobile ? false : settings.minimap },
+      lineNumbers: isSmallMobile ? 'off' : settings.lineNumbers,
       tabSize: settings.tabSize,
       insertSpaces: settings.insertSpaces,
       renderWhitespace: settings.renderWhitespace,
       cursorStyle: settings.cursorStyle,
       cursorBlinking: settings.cursorBlinking,
       bracketPairColorization: { enabled: settings.bracketPairColorization },
-      stickyScroll: { enabled: settings.stickyScroll },
+      stickyScroll: { enabled: isMobile ? false : settings.stickyScroll },
+      lineHeight: isMobile ? 22 : undefined,
+      scrollbar: isMobile ? { vertical: 'hidden', horizontal: 'hidden' } : undefined,
     });
   }, [settings.fontSize, settings.fontFamily, settings.fontLigatures, settings.wordWrap,
       settings.minimap, settings.lineNumbers, settings.tabSize, settings.insertSpaces,
       settings.renderWhitespace, settings.cursorStyle, settings.cursorBlinking,
-      settings.bracketPairColorization, settings.stickyScroll]);
+      settings.bracketPairColorization, settings.stickyScroll, isMobile, isSmallMobile]);
 
   useEffect(() => {
     if (monacoRef.current) {
@@ -312,11 +314,11 @@ function SplitPane({ split, splitIndex, isActive, showDivider, showClose }: Spli
             onChange={handleChange}
             options={{
               fontFamily: settings.fontFamily,
-              fontSize: settings.fontSize,
+              fontSize: isMobile ? 12 : settings.fontSize,
               fontLigatures: settings.fontLigatures,
-              wordWrap: settings.wordWrap,
-              minimap: { enabled: settings.minimap },
-              lineNumbers: settings.lineNumbers,
+              wordWrap: isMobile ? 'on' : settings.wordWrap,
+              minimap: { enabled: isMobile ? false : settings.minimap },
+              lineNumbers: isSmallMobile ? 'off' : settings.lineNumbers,
               tabSize: settings.tabSize,
               insertSpaces: settings.insertSpaces,
               renderWhitespace: settings.renderWhitespace,
@@ -325,7 +327,9 @@ function SplitPane({ split, splitIndex, isActive, showDivider, showClose }: Spli
               bracketPairColorization: { enabled: settings.bracketPairColorization },
               formatOnPaste: settings.formatOnPaste,
               formatOnType: settings.formatOnType,
-              stickyScroll: { enabled: settings.stickyScroll },
+              stickyScroll: { enabled: isMobile ? false : settings.stickyScroll },
+              lineHeight: isMobile ? 22 : undefined,
+              scrollbar: isMobile ? { vertical: 'hidden', horizontal: 'hidden' } : undefined,
               automaticLayout: true,
               scrollBeyondLastLine: false,
               readOnly: false,

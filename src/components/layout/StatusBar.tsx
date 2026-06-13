@@ -31,6 +31,8 @@ function PopoverPicker({
   onChange: (v: string) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const { isMobile } = useBreakpoint();
+
   return (
     <div style={{ position: 'relative' }}>
       <button
@@ -40,7 +42,7 @@ function PopoverPicker({
           alignItems: 'center',
           gap: 4,
           padding: '0 6px',
-          height: 22,
+          height: isMobile ? 24 : 22,
           background: 'transparent',
           border: 'none',
           color: 'inherit',
@@ -49,9 +51,12 @@ function PopoverPicker({
           fontWeight: 400,
           fontFamily: 'inherit',
           whiteSpace: 'nowrap',
+          minHeight: isMobile ? 24 : undefined,
         }}
         onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.12)'; }}
         onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+        onTouchStart={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.08)'; }}
+        onTouchEnd={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
       >
         {trigger}
       </button>
@@ -61,7 +66,7 @@ function PopoverPicker({
           <div
             style={{
               position: 'absolute',
-              bottom: 22,
+              bottom: isMobile ? 24 : 22,
               left: 0,
               backgroundColor: 'var(--vscode-dropdown-bg)',
               border: '1px solid var(--vscode-border)',
@@ -73,6 +78,7 @@ function PopoverPicker({
               padding: '4px 0',
               maxHeight: '50vh',
               overflowY: 'auto',
+              WebkitOverflowScrolling: 'touch',
             }}
           >
             {options.map((opt) => (
@@ -80,8 +86,8 @@ function PopoverPicker({
                 key={opt}
                 onClick={() => { onChange(opt); setOpen(false); }}
                 style={{
-                  padding: '5px 12px',
-                  fontSize: 12,
+                  padding: isMobile ? '10px 16px' : '5px 12px',
+                  fontSize: isMobile ? 13 : 12,
                   cursor: 'pointer',
                   color: 'var(--vscode-fg)',
                   display: 'flex',
@@ -89,9 +95,12 @@ function PopoverPicker({
                   alignItems: 'center',
                   backgroundColor: opt === value ? 'var(--vscode-list-active)' : 'transparent',
                   whiteSpace: 'nowrap',
+                  minHeight: isMobile ? 44 : undefined,
                 }}
                 onMouseEnter={(e) => { if (opt !== value) e.currentTarget.style.backgroundColor = 'var(--vscode-list-hover)'; }}
                 onMouseLeave={(e) => { if (opt !== value) e.currentTarget.style.backgroundColor = 'transparent'; }}
+                onTouchStart={(e) => { if (opt !== value) (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--vscode-list-hover)'; }}
+                onTouchEnd={(e) => { if (opt !== value) (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
               >
                 <span>{opt}</span>
                 {opt === value && <span style={{ fontSize: 10 }}>✓</span>}
@@ -116,7 +125,7 @@ export function StatusBar() {
     indentation,
   } = useStatusBarStore();
   const sidebar = useSidebarStore();
-  const { width, isMobile } = useBreakpoint();
+  const { width, isMobile, isSmallMobile } = useBreakpoint();
   const { unreadCount, toggleCenter } = useNotificationStore();
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'reconnecting' | 'disconnected'>('connected');
 
@@ -133,13 +142,17 @@ export function StatusBar() {
   const hasProblems = problems.errors > 0 || problems.warnings > 0;
 
   // Progressive visibility based on screen width
-  const showLanguage = width >= (isMobile ? 380 : 420);
-  const showCursorPos = width >= (isMobile ? 500 : 480);
-  const showIndent = width >= 580;
-  const showEncoding = width >= 680;
-  const showEol = width >= 760;
+  // On very small screens (< 360px): Only show remote indicator and branch icon
+  const isVerySmall = width < 360;
+  const showLanguage = !isVerySmall && width >= (isMobile ? 380 : 420);
+  const showCursorPos = !isVerySmall && width >= (isMobile ? 500 : 480);
+  const showIndent = !isVerySmall && width >= 580;
+  const showEncoding = !isVerySmall && width >= 680;
+  const showEol = !isVerySmall && width >= 760;
   const showBranchName = width >= (isMobile ? 360 : 300);
-  const showRemoteText = width >= 500;
+  const showRemoteText = !isVerySmall && width >= 500;
+  const showBranchText = !isVerySmall;
+  const showProblemsText = !isVerySmall;
 
   const barHeight = isMobile ? 24 : 22;
 
@@ -189,9 +202,12 @@ export function StatusBar() {
             fontWeight: 600,
             fontFamily: 'inherit',
             whiteSpace: 'nowrap',
+            minHeight: isMobile ? 24 : undefined,
           }}
           onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.12)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+          onTouchStart={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.08)'; }}
+          onTouchEnd={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
         >
           <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
             <path d="M4.287 6.783l-.8-.8A4.784 4.784 0 018 3.5c1.78 0 3.35.975 4.188 2.433l-.866.5A3.784 3.784 0 008 4.5a3.784 3.784 0 00-3.713 2.283zm1.6 1.6l-.8-.8A2.79 2.79 0 018 6.5c1.04 0 1.94.57 2.413 1.413l-.866.5A1.79 1.79 0 008 7.5a1.79 1.79 0 00-1.113.883zM8 10a1 1 0 100-2 1 1 0 000 2z" />
@@ -214,7 +230,7 @@ export function StatusBar() {
 
         {showBranchName && (
           <PopoverPicker
-            trigger={<><GitBranchIcon size={14} /><span style={{ marginLeft: 3 }}>{branch}</span></>}
+            trigger={<><GitBranchIcon size={14} />{showBranchText && <span style={{ marginLeft: 3 }}>{branch}</span>}</>}
             options={BRANCHES}
             value={branch}
             onChange={(v) => useStatusBarStore.setState({ branch: v })}
@@ -227,15 +243,17 @@ export function StatusBar() {
             display: 'flex', alignItems: 'center', gap: 4, padding: '0 6px',
             height: barHeight, background: 'transparent', border: 'none',
             color: 'inherit', cursor: 'pointer', fontSize: isMobile ? 11 : 12, fontWeight: 400,
-            whiteSpace: 'nowrap',
+            whiteSpace: 'nowrap', minHeight: isMobile ? 24 : undefined,
           }}
           onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.12)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+          onTouchStart={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.08)'; }}
+          onTouchEnd={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
         >
           {hasProblems ? (
             <>
-              {problems.errors > 0 && <><ErrorIcon size={14} /><span>{problems.errors}</span></>}
-              {problems.warnings > 0 && <><WarningIcon size={14} /><span>{problems.warnings}</span></>}
+              {problems.errors > 0 && <><ErrorIcon size={14} />{showProblemsText && <span>{problems.errors}</span>}</>}
+              {problems.warnings > 0 && <><WarningIcon size={14} />{showProblemsText && <span>{problems.warnings}</span>}</>}
             </>
           ) : (
             <CheckIcon size={14} />
@@ -305,9 +323,12 @@ export function StatusBar() {
             color: 'inherit',
             cursor: 'pointer',
             position: 'relative',
+            minHeight: isMobile ? 24 : undefined,
           }}
           onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.12)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+          onTouchStart={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.08)'; }}
+          onTouchEnd={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
         >
           <BellIcon size={14} />
           {unreadCount > 0 && (
@@ -347,6 +368,7 @@ export function StatusBar() {
 }
 
 function StatusBarItem({ children, fontSize = 12 }: { children: React.ReactNode; fontSize?: number }) {
+  const { isMobile } = useBreakpoint();
   return (
     <button
       style={{
@@ -354,7 +376,7 @@ function StatusBarItem({ children, fontSize = 12 }: { children: React.ReactNode;
         alignItems: 'center',
         gap: 4,
         padding: '0 6px',
-        height: 22,
+        height: isMobile ? 24 : 22,
         background: 'transparent',
         border: 'none',
         color: 'inherit',
@@ -364,9 +386,12 @@ function StatusBarItem({ children, fontSize = 12 }: { children: React.ReactNode;
         fontFamily: 'inherit',
         whiteSpace: 'nowrap',
         flexShrink: 0,
+        minHeight: isMobile ? 24 : undefined,
       }}
       onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.12)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+      onTouchStart={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.08)'; }}
+      onTouchEnd={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
     >
       {children}
     </button>

@@ -219,18 +219,19 @@ export function TitleBar() {
             zIndex: 100,
             position: 'relative',
             overflow: 'hidden',
-            height: 36,
+            height: 44, // 44px to match iOS HIG
             paddingLeft: 4,
             paddingRight: 4,
+            paddingTop: 'env(safe-area-inset-top, 0px)',
           }}
-          className="safe-area-top"
+          className="safe-area-top title-bar-mobile"
         >
-          {/* Hamburger button */}
+          {/* Hamburger button - 44x44 touch target */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             style={{
-              width: 36,
-              height: 36,
+              width: 44,
+              height: 44,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

@@ -9,6 +9,7 @@ import { DebugConsolePanel } from '@/components/panel/DebugConsolePanel';
 import { PortsPanel } from '@/components/panel/PortsPanel';
 import { TerminalIcon, ProblemsIcon, OutputIcon, DebugConsoleIcon } from '@/components/icons';
 import { useBreakpoint } from '@/hooks/useWindowSize';
+import { useSwipeGesture } from '@/hooks/useSwipeGesture';
 
 type PanelTab = 'terminal' | 'problems' | 'output' | 'debugConsole' | 'ports';
 
@@ -33,12 +34,29 @@ export function BottomPanel() {
   const [isResizing, setIsResizing] = useState(false);
   const [height, setHeight] = useState(DEFAULT_HEIGHT);
   const panelRef = useRef<HTMLDivElement>(null);
-  const { isMobile, isTablet, height: vh } = useBreakpoint();
+  const headerRef = useRef<HTMLDivElement>(null);
+  const { isMobile, isTablet, height: vh, isLandscape } = useBreakpoint();
 
+  // Mobile default: 40% of viewport height
+  const mobileDefaultHeight = Math.floor(vh * 0.4);
   const maxHeight = Math.floor(vh * 0.6);
   const effectiveHeight = isMobile
     ? Math.min(height, Math.floor(vh * 0.5))
     : Math.min(Math.max(height, MIN_HEIGHT), maxHeight);
+
+  // Swipe down on header to dismiss panel
+  useSwipeGesture(headerRef, {
+    onSwipeDown: () => {
+      if (isMobile && showPanel) {
+        terminalStore.togglePanel();
+      }
+    },
+    minDistance: 60,
+    minVelocity: 0.2,
+  });
+
+  // Auto-collapse in landscape mobile
+  const shouldCollapseLandscape = isMobile && isLandscape;
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -63,7 +81,7 @@ export function BottomPanel() {
     document.addEventListener('mouseup', handleMouseUp);
   }, [effectiveHeight, isMobile]);
 
-  // Touch resize support
+  // Touch resize support with larger handle on mobile
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
     setIsResizing(true);
@@ -87,10 +105,12 @@ export function BottomPanel() {
     document.addEventListener('touchend', handleTouchEnd);
   }, [effectiveHeight, isMobile]);
 
-  if (!showPanel) return null;
+  if (!showPanel || shouldCollapseLandscape) return null;
 
   const tabHeight = isMobile ? 36 : 35;
   const showLabels = !isMobile;
+  const resizeHandleHeight = isMobile ? 12 : 6;
+  const resizeHandleTop = isMobile ? -6 : -3;
 
   return (
     <div
@@ -107,22 +127,43 @@ export function BottomPanel() {
       }}
       className={isMobile ? 'safe-area-bottom' : undefined}
     >
+      {/* Resize handle - larger on mobile for better touch targets */}
       <div
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
         style={{
           position: 'absolute',
-          top: -3,
+          top: resizeHandleTop,
           left: 0,
           right: 0,
-          height: 6,
+          height: resizeHandleHeight,
           cursor: 'row-resize',
           zIndex: 10,
           backgroundColor: isResizing ? 'var(--vscode-sash-hover)' : 'transparent',
+          transition: isResizing ? 'none' : 'background-color 0.15s',
+          // Visual feedback: show a subtle line when not resizing on mobile
+          ...(isMobile && !isResizing ? {
+            '::after': undefined, // Cannot use pseudo-elements in inline styles
+          } : {}),
         }}
-      />
+      >
+        {/* Visual indicator for the resize handle on mobile */}
+        {isMobile && !isResizing && (
+          <div style={{
+            position: 'absolute',
+            top: 5,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: 32,
+            height: 3,
+            borderRadius: 2,
+            backgroundColor: 'rgba(255,255,255,0.15)',
+          }} />
+        )}
+      </div>
 
       <div
+        ref={headerRef}
         style={{
           height: tabHeight,
           display: 'flex',
@@ -147,7 +188,7 @@ export function BottomPanel() {
               display: 'flex',
               alignItems: 'center',
               gap: isMobile ? 3 : 4,
-              height: tabHeight,
+              height: isMobile ? 44 : tabHeight, // 44px min-height on mobile for touch
               padding: isMobile ? '0 6px' : '0 8px',
               background: 'transparent',
               border: 'none',
@@ -162,6 +203,7 @@ export function BottomPanel() {
               fontFamily: 'inherit',
               whiteSpace: 'nowrap',
               flexShrink: 0,
+              minHeight: isMobile ? 44 : undefined,
             }}
           >
             <Icon size={isMobile ? 16 : 14} />
@@ -170,7 +212,7 @@ export function BottomPanel() {
         ))}
       </div>
 
-      <div style={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
+      <div style={{ flex: 1, overflow: 'hidden', minHeight: 0, WebkitOverflowScrolling: 'touch' }}>
         {activePanelTab === 'terminal' && <Terminal />}
         {activePanelTab === 'problems' && <ProblemsPanel />}
         {activePanelTab === 'output' && <OutputPanel />}

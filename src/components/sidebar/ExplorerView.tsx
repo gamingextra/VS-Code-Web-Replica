@@ -7,6 +7,7 @@ import { useEditorStore } from '@/store/editorStore';
 import { getLanguageFromFilename } from '@/utils/language';
 import { ChevronRightIcon, ChevronDownIcon, FolderIcon, FolderOpenIcon, FileIcon, NewFileIcon, NewFolderIcon, RefreshExplorerIcon, CollapseAllIcon } from '@/components/icons';
 import { toast } from 'sonner';
+import { useBreakpoint } from '@/hooks/useWindowSize';
 
 const iconColors: Record<string, string> = {
   js: '#f4d03f', jsx: '#61dafb', ts: '#3178c6', tsx: '#61dafb',
@@ -29,6 +30,7 @@ interface ContextMenuProps {
 function ContextMenu({ x, y, node, onClose, onContextAction, onDownloadFile }: ContextMenuProps) {
   const { deleteNode } = useFileSystemStore();
   const menuRef = useRef<HTMLDivElement>(null);
+  const { isMobile } = useBreakpoint();
 
   useEffect(() => {
     if (menuRef.current) {
@@ -68,9 +70,21 @@ function ContextMenu({ x, y, node, onClose, onContextAction, onDownloadFile }: C
           <div
             key={item.label}
             onClick={item.action}
-            style={{ padding: '5px 20px 5px 12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 24, color: item.danger ? '#f48771' : '#cccccc', userSelect: 'none' }}
+            style={{
+              padding: isMobile ? '10px 20px 10px 12px' : '5px 20px 5px 12px',
+              cursor: 'pointer',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: 24,
+              color: item.danger ? '#f48771' : '#cccccc',
+              userSelect: 'none',
+              minHeight: isMobile ? 44 : undefined,
+            }}
             onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '#094771'; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.backgroundColor = 'transparent'; }}
+            onTouchStart={(e) => { if (item.action) (e.currentTarget as HTMLElement).style.backgroundColor = '#094771'; }}
+            onTouchEnd={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
           >
             <span>{item.label}</span>
             {item.shortcut && <span style={{ fontSize: 11, color: '#858585', flexShrink: 0 }}>{item.shortcut}</span>}
@@ -91,18 +105,24 @@ interface FileTreeNodeProps {
   onSelect: (node: FileNode) => void;
   onContextAction?: (action: 'newFile' | 'newFolder', node: FileNode) => void;
   onDownloadFile?: (node: FileNode) => void;
+  compact?: boolean;
 }
 
-export function FileTreeNode({ node, depth = 0, selectedId, expandedIds, onToggle, onSelect, onContextAction, onDownloadFile }: FileTreeNodeProps) {
+export function FileTreeNode({ node, depth = 0, selectedId, expandedIds, onToggle, onSelect, onContextAction, onDownloadFile, compact }: FileTreeNodeProps) {
   const isExpanded = expandedIds.has(node.id);
   const isSelected = selectedId === node.id;
   const paddingLeft = 8 + depth * 12;
+  const { isMobile } = useBreakpoint();
 
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(node.name);
   const renameInputRef = useRef<HTMLInputElement>(null);
   const { renameNode } = useFileSystemStore();
+
+  // Long press for context menu on mobile
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTriggeredRef = useRef(false);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -128,6 +148,31 @@ export function FileTreeNode({ node, depth = 0, selectedId, expandedIds, onToggl
     e.preventDefault(); e.stopPropagation(); setContextMenu({ x: e.clientX, y: e.clientY });
   }, []);
 
+  // Long press handlers for mobile
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (!isMobile) return;
+    longPressTriggeredRef.current = false;
+    const touch = e.touches[0];
+    longPressTimerRef.current = setTimeout(() => {
+      longPressTriggeredRef.current = true;
+      setContextMenu({ x: touch.clientX, y: touch.clientY });
+    }, 500);
+  }, [isMobile]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
+
+  const handleTouchMove = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
+
   const handleRenameSubmit = useCallback(() => {
     const trimmed = renameValue.trim();
     if (trimmed && trimmed !== node.name) { renameNode(node.id, trimmed); toast.success(`Renamed to ${trimmed}`); }
@@ -137,14 +182,26 @@ export function FileTreeNode({ node, depth = 0, selectedId, expandedIds, onToggl
   const ext = node.name.split('.').pop() || '';
   const iconColor = iconColors[ext.toLowerCase()] || 'var(--vscode-fg)';
 
+  // In compact mode (tablet), show only icons
+  if (compact) {
+    return null; // Compact mode handled differently
+  }
+
+  // Mobile: 28px item height, larger touch targets
+  const itemHeight = isMobile ? 28 : undefined;
+  const actionButtonSize = isMobile ? 32 : 24;
+
   if (node.type === 'folder') {
     return (
       <div>
         <div
-          className={`flex items-center gap-1 py-0.5 pr-2 cursor-pointer select-none text-[var(--vscode-fg)] ${isSelected ? 'bg-[var(--vscode-list-active)]' : 'hover:bg-[var(--vscode-list-hover)]'}`}
-          style={{ paddingLeft, fontSize: 13 }}
-          onClick={() => onToggle(node)}
+          className={`flex items-center gap-1 cursor-pointer select-none text-[var(--vscode-fg)] ${isSelected ? 'bg-[var(--vscode-list-active)]' : 'hover:bg-[var(--vscode-list-hover)]'}`}
+          style={{ paddingLeft, fontSize: 13, minHeight: itemHeight, padding: isMobile ? '4px 8px 4px 0' : undefined }}
+          onClick={(e) => { if (!longPressTriggeredRef.current) onToggle(node); longPressTriggeredRef.current = false; }}
           onContextMenu={handleContextMenu}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onTouchMove={handleTouchMove}
           tabIndex={0}
         >
           <span className="w-4 h-4 flex items-center justify-center opacity-70 flex-shrink-0">
@@ -170,10 +227,13 @@ export function FileTreeNode({ node, depth = 0, selectedId, expandedIds, onToggl
   return (
     <div>
       <div
-        className={`flex items-center gap-1 py-0.5 pr-2 cursor-pointer select-none text-[var(--vscode-fg)] ${isSelected ? 'bg-[var(--vscode-list-active)]' : 'hover:bg-[var(--vscode-list-hover)]'}`}
-        style={{ paddingLeft: paddingLeft + 16, fontSize: 13 }}
-        onClick={() => onSelect(node)}
+        className={`flex items-center gap-1 cursor-pointer select-none text-[var(--vscode-fg)] ${isSelected ? 'bg-[var(--vscode-list-active)]' : 'hover:bg-[var(--vscode-list-hover)]'}`}
+        style={{ paddingLeft: paddingLeft + 16, fontSize: 13, minHeight: itemHeight, padding: isMobile ? '4px 8px 4px 0' : undefined }}
+        onClick={(e) => { if (!longPressTriggeredRef.current) onSelect(node); longPressTriggeredRef.current = false; }}
         onContextMenu={handleContextMenu}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onTouchMove={handleTouchMove}
         tabIndex={0}
       >
         <span className="w-4 h-4 flex items-center justify-center mr-1 flex-shrink-0" style={{ color: iconColor }}>
@@ -192,7 +252,7 @@ export function FileTreeNode({ node, depth = 0, selectedId, expandedIds, onToggl
 
 type CreateMode = { type: 'file' | 'folder'; parentId: string | null };
 
-export function ExplorerView() {
+export function ExplorerView({ compact = false }: { compact?: boolean }) {
   const { root, expandedFolders, toggleFolder, selectedNodeId, setSelectedNode, collapseFolder, createFile, createFolder, createFileAtRoot, createFolderAtRoot, expandFolder } = useFileSystemStore();
   const { openFile, tabs, activeTabId } = useEditorStore();
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set(expandedFolders));
@@ -200,6 +260,10 @@ export function ExplorerView() {
   const [createName, setCreateName] = useState('');
   const createInputRef = useRef<HTMLInputElement>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
+  const { isMobile } = useBreakpoint();
+
+  // Action button sizes
+  const actionBtnSize = isMobile ? 32 : 24;
 
   useEffect(() => { if (creating && createInputRef.current) createInputRef.current.focus(); }, [creating]);
 
@@ -274,19 +338,37 @@ export function ExplorerView() {
 
   const openEditors = tabs.filter((t) => !t.path.startsWith('Untitled'));
 
+  // Compact mode: just show header icons
+  if (compact) {
+    return (
+      <div className="flex flex-col h-full text-[var(--vscode-fg)] items-center pt-2">
+        <button title="New File" onClick={() => startCreating('file', null)} style={{ width: actionBtnSize, height: actionBtnSize, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', color: 'var(--vscode-fg)', cursor: 'pointer', borderRadius: 4, opacity: 0.6 }}>
+          <NewFileIcon size={16} />
+        </button>
+        <button title="New Folder" onClick={() => startCreating('folder', null)} style={{ width: actionBtnSize, height: actionBtnSize, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', color: 'var(--vscode-fg)', cursor: 'pointer', borderRadius: 4, opacity: 0.6 }}>
+          <NewFolderIcon size={16} />
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full text-[var(--vscode-fg)]">
       <div className="flex items-center justify-between px-3 py-1 flex-shrink-0">
         <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase', opacity: 0.8 }}>EXPLORER</span>
         <div className="flex gap-0.5">
-          <button title="New File" onClick={() => startCreating('file', null)} className="w-6 h-6 flex items-center justify-center hover:bg-[var(--vscode-list-hover)] rounded opacity-60 hover:opacity-100"><NewFileIcon size={16} /></button>
-          <button title="New Folder" onClick={() => startCreating('folder', null)} className="w-6 h-6 flex items-center justify-center hover:bg-[var(--vscode-list-hover)] rounded opacity-60 hover:opacity-100"><NewFolderIcon size={16} /></button>
-          <button title="Upload Files" onClick={() => uploadInputRef.current?.click()} className="w-6 h-6 flex items-center justify-center hover:bg-[var(--vscode-list-hover)] rounded opacity-60 hover:opacity-100">
+          <button title="New File" onClick={() => startCreating('file', null)} style={{ width: actionBtnSize, height: actionBtnSize, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', color: 'var(--vscode-fg)', cursor: 'pointer', borderRadius: 4, opacity: 0.6 }}>
+            <NewFileIcon size={16} />
+          </button>
+          <button title="New Folder" onClick={() => startCreating('folder', null)} style={{ width: actionBtnSize, height: actionBtnSize, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', color: 'var(--vscode-fg)', cursor: 'pointer', borderRadius: 4, opacity: 0.6 }}>
+            <NewFolderIcon size={16} />
+          </button>
+          <button title="Upload Files" onClick={() => uploadInputRef.current?.click()} style={{ width: actionBtnSize, height: actionBtnSize, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', color: 'var(--vscode-fg)', cursor: 'pointer', borderRadius: 4, opacity: 0.6 }}>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8.5 1.5v7.2l2.1-2.1.7.7-3.3 3.3-3.3-3.3.7-.7 2.1 2.1V1.5h1zM2.5 12.5v1h11v-1h-11z"/></svg>
           </button>
           <input ref={uploadInputRef} type="file" multiple style={{ display: 'none' }} onChange={handleFileUpload} />
-          <button title="Refresh Explorer" className="w-6 h-6 flex items-center justify-center hover:bg-[var(--vscode-list-hover)] rounded opacity-60 hover:opacity-100"><RefreshExplorerIcon size={16} /></button>
-          <button title="Collapse All" onClick={handleCollapseAll} className="w-6 h-6 flex items-center justify-center hover:bg-[var(--vscode-list-hover)] rounded opacity-60 hover:opacity-100"><CollapseAllIcon size={16} /></button>
+          <button title="Refresh Explorer" style={{ width: actionBtnSize, height: actionBtnSize, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', color: 'var(--vscode-fg)', cursor: 'pointer', borderRadius: 4, opacity: 0.6 }}><RefreshExplorerIcon size={16} /></button>
+          <button title="Collapse All" onClick={handleCollapseAll} style={{ width: actionBtnSize, height: actionBtnSize, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', color: 'var(--vscode-fg)', cursor: 'pointer', borderRadius: 4, opacity: 0.6 }}><CollapseAllIcon size={16} /></button>
         </div>
       </div>
 
@@ -294,7 +376,7 @@ export function ExplorerView() {
         <div className="mt-1 flex-shrink-0">
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase', opacity: 0.5, padding: '4px 16px' }}>Open Editors</div>
           {openEditors.map((tab) => (
-            <div key={tab.id} className={`flex items-center gap-1 py-0.5 px-4 cursor-pointer text-sm ${tab.id === activeTabId ? 'bg-[var(--vscode-list-active)]' : 'hover:bg-[var(--vscode-list-hover)]'}`} onClick={() => useEditorStore.getState().setActiveTab(tab.id)}>
+            <div key={tab.id} className={`flex items-center gap-1 px-4 cursor-pointer text-sm ${tab.id === activeTabId ? 'bg-[var(--vscode-list-active)]' : 'hover:bg-[var(--vscode-list-hover)]'}`} style={{ minHeight: isMobile ? 28 : undefined }} onClick={() => useEditorStore.getState().setActiveTab(tab.id)}>
               <span className="truncate text-xs">{tab.name}</span>
               {tab.isDirty && <span className="text-[var(--vscode-fg)] opacity-50 ml-0.5 flex-shrink-0">●</span>}
             </div>
@@ -312,7 +394,10 @@ export function ExplorerView() {
         </div>
       )}
 
-      <div className="flex-1 overflow-auto">
+      <div
+        className="flex-1 overflow-auto scrollable-child"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
         {root.map((node) => (
           <FileTreeNode key={node.id} node={node} depth={0} selectedId={selectedNodeId} expandedIds={expandedIds} onToggle={handleToggle} onSelect={handleSelect} onContextAction={(action, n) => startCreating(action === 'newFile' ? 'file' : 'folder', n.id)} onDownloadFile={handleDownloadFile} />
         ))}

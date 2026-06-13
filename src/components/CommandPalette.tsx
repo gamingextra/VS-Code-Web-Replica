@@ -112,7 +112,7 @@ export function CommandPalette() {
   if (!open) return null;
 
   const itemStyle: React.CSSProperties = {
-    padding: isMobile ? '8px 12px' : '5px 12px',
+    padding: isMobile ? '10px 16px' : '5px 12px',
     cursor: 'pointer',
     display: 'flex',
     justifyContent: 'space-between',
@@ -120,9 +120,114 @@ export function CommandPalette() {
     fontSize: isMobile ? 14 : 13,
     color: '#cccccc',
     gap: 16,
-    minHeight: isMobile ? 40 : undefined,
+    minHeight: isMobile ? 44 : undefined,
   };
 
+  // Mobile: bottom sheet style, full-width
+  if (isMobile) {
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 9999,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'center',
+        }}
+        onClick={() => setOpen(false)}
+      >
+        <div
+          className="command-palette-dialog"
+          style={{
+            width: '100vw',
+            maxWidth: '100vw',
+            backgroundColor: '#252526',
+            borderTopLeftRadius: 12,
+            borderTopRightRadius: 12,
+            borderBottomLeftRadius: 0,
+            borderBottomRightRadius: 0,
+            boxShadow: '0 -4px 32px rgba(0,0,0,0.5)',
+            overflow: 'hidden',
+            maxHeight: '85vh',
+            display: 'flex',
+            flexDirection: 'column',
+            animation: 'slideUpGPU 0.25s ease-out',
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Drag handle indicator */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            paddingTop: 8,
+            paddingBottom: 4,
+          }}>
+            <div style={{
+              width: 36,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: 'rgba(255,255,255,0.2)',
+            }} />
+          </div>
+
+          <Command label="Command Palette">
+            <div style={{ display: 'flex', alignItems: 'center', padding: '10px 16px', borderBottom: '1px solid #454545' }}>
+              <span style={{ color: '#858585', fontSize: 16, marginRight: 8, flexShrink: 0 }}>
+                {mode === 'command' ? '>' : '📁'}
+              </span>
+              <Command.Input
+                value={search}
+                onValueChange={setSearch}
+                placeholder={mode === 'command' ? 'Type a command or search...' : 'Type to search for a file'}
+                style={{
+                  flex: 1,
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  color: '#cccccc',
+                  // 16px to prevent iOS zoom on focus
+                  fontSize: 16,
+                  fontFamily: '"Inter", sans-serif',
+                  minWidth: 0,
+                }}
+                autoFocus
+              />
+            </div>
+
+            <Command.List style={{ maxHeight: '60vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
+              {mode === 'command' && (
+                <>
+                  {Object.entries(groupedCommands).map(([category, items]) => (
+                    <Command.Group key={category} heading={<div style={{ padding: '6px 16px 2px', fontSize: 11, color: '#858585', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{category}</div>}>
+                      {items.map((c) => (
+                        <Command.Item key={c.label} onSelect={c.action} style={itemStyle}>
+                          <span>{c.label}</span>
+                        </Command.Item>
+                      ))}
+                    </Command.Group>
+                  ))}
+                </>
+              )}
+
+              {mode === 'file' && (
+                <Command.Group heading={<div style={{ padding: '6px 16px 2px', fontSize: 11, color: '#858585' }}>{filteredFiles.length} file{filteredFiles.length !== 1 ? 's' : ''}</div>}>
+                  {filteredFiles.slice(0, 50).map((f) => (
+                    <Command.Item key={f.path} onSelect={() => run(() => editor.openFile(f.path, f.name, f.content, f.language))} style={itemStyle}>
+                      <span style={{ fontWeight: 500 }}>{f.name}</span>
+                    </Command.Item>
+                  ))}
+                </Command.Group>
+              )}
+            </Command.List>
+          </Command>
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop layout
   return (
     <div
       style={{
@@ -133,25 +238,25 @@ export function CommandPalette() {
         display: 'flex',
         alignItems: 'flex-start',
         justifyContent: 'center',
-        paddingTop: isMobile ? '8vh' : '12vh',
+        paddingTop: '12vh',
       }}
       onClick={() => setOpen(false)}
     >
       <div
         style={{
-          width: isMobile ? '96vw' : 620,
+          width: 620,
           maxWidth: '96vw',
           backgroundColor: '#252526',
           border: '1px solid #454545',
-          borderRadius: isMobile ? 8 : 6,
+          borderRadius: 6,
           boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
           overflow: 'hidden',
         }}
         onClick={(e) => e.stopPropagation()}
       >
         <Command label="Command Palette">
-          <div style={{ display: 'flex', alignItems: 'center', padding: isMobile ? '12px' : '8px 12px', borderBottom: '1px solid #454545' }}>
-            <span style={{ color: '#858585', fontSize: isMobile ? 14 : 13, marginRight: 8, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', padding: '8px 12px', borderBottom: '1px solid #454545' }}>
+            <span style={{ color: '#858585', fontSize: 13, marginRight: 8, flexShrink: 0 }}>
               {mode === 'command' ? '>' : 'Go to file'}
             </span>
             <Command.Input
@@ -164,18 +269,16 @@ export function CommandPalette() {
                 border: 'none',
                 outline: 'none',
                 color: '#cccccc',
-                fontSize: isMobile ? 16 : 13,
+                fontSize: 13,
                 fontFamily: '"Inter", sans-serif',
                 minWidth: 0,
               }}
               autoFocus
             />
-            {!isMobile && (
-              <span style={{ fontSize: 11, color: '#858585', flexShrink: 0, marginLeft: 8 }}>Esc to close</span>
-            )}
+            <span style={{ fontSize: 11, color: '#858585', flexShrink: 0, marginLeft: 8 }}>Esc to close</span>
           </div>
 
-          <Command.List style={{ maxHeight: isMobile ? '55vh' : '60vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          <Command.List style={{ maxHeight: '60vh', overflowY: 'auto' }}>
             {mode === 'command' && (
               <>
                 {Object.entries(groupedCommands).map(([category, items]) => (
@@ -183,7 +286,7 @@ export function CommandPalette() {
                     {items.map((c) => (
                       <Command.Item key={c.label} onSelect={c.action} style={itemStyle}>
                         <span>{c.label}</span>
-                        {c.shortcut && !isMobile && <span style={{ fontSize: 11, color: '#858585', fontFamily: 'monospace', flexShrink: 0 }}>{c.shortcut}</span>}
+                        {c.shortcut && <span style={{ fontSize: 11, color: '#858585', fontFamily: 'monospace', flexShrink: 0 }}>{c.shortcut}</span>}
                       </Command.Item>
                     ))}
                   </Command.Group>
@@ -196,9 +299,7 @@ export function CommandPalette() {
                 {filteredFiles.slice(0, 50).map((f) => (
                   <Command.Item key={f.path} onSelect={() => run(() => editor.openFile(f.path, f.name, f.content, f.language))} style={itemStyle}>
                     <span style={{ fontWeight: 500 }}>{f.name}</span>
-                    {!isMobile && (
-                      <span style={{ fontSize: 11, color: '#858585', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.path}</span>
-                    )}
+                    <span style={{ fontSize: 11, color: '#858585', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.path}</span>
                   </Command.Item>
                 ))}
               </Command.Group>
