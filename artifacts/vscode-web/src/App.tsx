@@ -1,42 +1,103 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/not-found";
+import { useEffect } from 'react';
+import { TitleBar } from '@/components/layout/TitleBar';
+import { ActivityBar } from '@/components/layout/ActivityBar';
+import { Sidebar } from '@/components/layout/Sidebar';
+import { TabBar } from '@/components/layout/TabBar';
+import { EditorArea } from '@/components/layout/EditorArea';
+import { BottomPanel } from '@/components/layout/BottomPanel';
+import { StatusBar } from '@/components/layout/StatusBar';
+import { CommandPalette } from '@/components/CommandPalette';
+import { useFileSystemStore } from '@/store/fileSystemStore';
+import { useKeyboardShortcuts, registerShortcut } from '@/hooks/useKeyboardShortcuts';
+import { useSidebarStore } from '@/store/sidebarStore';
+import { useTerminalStore } from '@/store/terminalStore';
+import { createDemoWorkspace } from '@/data/demoWorkspace';
 
-const queryClient = new QueryClient();
+export default function App() {
+  const { setRoot } = useFileSystemStore();
+  const { toggle: toggleSidebar } = useSidebarStore();
+  const { togglePanel } = useTerminalStore();
 
-function Home() {
+  // Initialize demo workspace
+  useEffect(() => {
+    setRoot(createDemoWorkspace());
+  }, [setRoot]);
+
+  // Register keyboard shortcuts
+  useEffect(() => {
+    const unsubSidebar = registerShortcut('toggleSidebar', toggleSidebar);
+    const unsubPanel = registerShortcut('togglePanel', togglePanel);
+    return () => {
+      unsubSidebar();
+      unsubPanel();
+    };
+  }, [toggleSidebar, togglePanel]);
+
+  // Initialize keyboard shortcuts listener
+  useKeyboardShortcuts();
+
+  // Listen for terminal commands from menu
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { command } = (e as CustomEvent).detail;
+      if (command === 'newTerminal') {
+        useTerminalStore.getState().showPanelFn();
+        useTerminalStore.getState().setActivePanelTab('terminal');
+        useTerminalStore.getState().createTerminal();
+      }
+      if (command === 'toggleTerminal') {
+        useTerminalStore.getState().togglePanel();
+        useTerminalStore.getState().setActivePanelTab('terminal');
+      }
+    };
+    window.addEventListener('vscode:command', handler);
+    return () => window.removeEventListener('vscode:command', handler);
+  }, []);
+
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-900">Replit Agent is building...</h1>
-        <p className="mt-2 text-sm text-gray-600">Your app will appear here once it's ready.</p>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Title Bar */}
+      <TitleBar />
+
+      {/* Main area */}
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        {/* Activity Bar */}
+        <ActivityBar />
+
+        {/* Sidebar */}
+        <Sidebar />
+
+        {/* Editor + Panel */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            overflow: 'hidden',
+          }}
+        >
+          {/* Tab Bar + Editor */}
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+            <TabBar />
+            <EditorArea />
+          </div>
+
+          {/* Bottom Panel */}
+          <BottomPanel />
+
+          {/* Status Bar */}
+          <StatusBar />
+        </div>
       </div>
+
+      <CommandPalette />
     </div>
   );
 }
-
-function Router() {
-  return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route component={NotFound} />
-    </Switch>
-  );
-}
-
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
-        </WouterRouter>
-        <Toaster />
-      </TooltipProvider>
-    </QueryClientProvider>
-  );
-}
-
-export default App;
