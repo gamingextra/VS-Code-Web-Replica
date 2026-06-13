@@ -1,0 +1,493 @@
+=== codeserver_guide2.json ===
+left; } .osano-cm-dialog { background: 
+rgba(0,0,0,0.7); color: 
+#c6c6c6; } .osano-cm-dialog__close { color: 
+#c6c6c6; border-color: 
+rgba(0,0,0,0.7); } .osano-cm-dialog__close:hover { stroke: 
+#b2b2b2; } .osano-cm-dialog__close:focus:hover { stroke: 
+#141414; } .osano-cm-info-dialog { background: 
+rgba(0,0,0,0.45); } .osano-cm-header, .osano-cm-info-dialog-header { background: 
+#fff; background: linear-gradient( 180deg, 
+rgba(255,255,255,0) 100% ); } .osano-cm-info { background: 
+#fff; } .osano-cm-info-dialog-header__close:hover { stroke: 
+#141414; } .osano-cm-info-dialog-header__close:focus:hover { stroke: 
+#c6c6c6; } .osano-cm-disclosure__toggle, .osano-cm-expansion-panel__toggle { color: 
+#c6c6c6; } .osano-cm-disclosure__toggle:hover, .osano-cm-disclosure__toggle:active, .osano-cm-expansion-panel__toggle:hover, .osano-cm-expansion-panel__toggle:active { color: 
+#c6c6c6; } .osano-cm-disclosure__toggle:focus, .osano-cm-expansion-panel__toggle:focus { color: 
+#f2edff; border-color: 
+#000000; border-color: 
+#141414; } .osano-cm-link { color: 
+#c6c6c6; } .osano-cm-link:hover, .osano-cm-link:active { color: 
+#c6c6c6; } .osano-cm-link:focus { color: 
+#ffffff; border-color: 
+#37cd8f; border-color: 
+#37cd8f; } .osano-cm-toggle__input:checked + .osano-cm-toggle__switch::after, .osano-cm-toggle__input:checked + .osano-cm-toggle__switch::before { border-color: 
+#bebbeb; border-color: 
+#bebbeb; } .osano-cm-toggle__input:focus + .osano-cm-toggle__switch::before { border-color: 
+#23b97b; border-color: 
+#23b97b; } .osano-cm-toggle__input:checked:focus + .osano-cm-toggle__switch::before { border-color: 
+#928fbf; border-color: 
+#bfbfbf; border-color: 
+#008d4f; border-color: 
+#b4b4b4; border-color: 
+#b4b4b4; } .osano-cm-toggle__input:disabled:checked + .osano-cm-toggle__switch::before, .osano-cm-toggle__input:disabled:checked:focus + .osano-cm-toggle__switch::before, .osano-cm-toggle__input:disabled:checked:hover + .osano-cm-toggle__switch::before { border-color: transparent; } .osano-cm-widget__outline { fill: 
+#29246a; } .osano-cm-widget__dot { fill: 
+#37cd8f; } .osano-cm-tcf-purpose--label input { accent-color: 
+Securely Access &amp; Expose code-server | code-server Docs
+      src: url("https://cdn.pathfactory.com/assets/2/fonts/2de5ebd6-54ed-4edb-941f-6084181c6f84.woff2") format("woff2");
+      src: url("https://cdn.pathfactory.com/assets/2/fonts/57452b95-23d4-48b0-ac24-505303058eab.woff2") format("woff2");
+      src: url("https://cdn.pathfactory.com/assets/2/fonts/9c9872d3-0bc9-40ab-a40f-1c81a43cedd3.woff2") format("woff2");
+(function(p,l,o,w,i,n,g){if(!p[i]){p.GlobalSnowplowNamespace=p.GlobalSnowplowNamespace||[];
+      p.GlobalSnowplowNamespace.push(i);p[i]=function(){(p[i].q=p[i].q||[]).push(arguments)
+      };p[i].q=p[i].q||[];n=l.createElement(o);g=l.getElementsByTagName(o)[0];n.async=1;
+      n.src=w;g.parentNode.insertBefore(n,g)}}(window,document,"script","//cdn-app.pathfactory.com/libraries/tracker/3.19.0/sp.lite.js","jukeboxTracker"));
+Opens in a new window
+Opens an external website
+Opens an external website in a new window
+This website utilizes technologies such as cookies to enable essential site functionality, as well as for analytics, personalization, and targeted advertising. 
+Close Cookie Preferences
+Deploy coding agents with consistency and control on self-hosted, network-isolated infrastructure.
+Self-hosted cloud development environments for your developers and their agents.
+A centralized gateway to observe and control LLM tool usage across your environments.
+Ecosystem Integrations
+AI-native Development
+Coder powers secure, scalable development across key industries — automotive, finance, government, and technology — enabling faster builds, tighter compliance, and seamless AI adoption in enterprise-grade cloud environments.
+Secure Environments for 2,500+ Developers
+How a U.S. defense intelligence organization centralized ATO compliance and established the military's first multi-tenant Coder deployment.
+Events &amp; Webinars
+Introducing Coder Agents: Self-Hosted AI Workflow Infrastructure
+					scroll-behavior: auto;
+					/* .selection::bg-sky-800! */
+					--docsearch-searchbox-background: color-mix(in oklab, var(--input) 30%, transparent);
+					--docsearch-muted-color: var(--color-muted-foreground);
+					--docsearch-text-color: var(--color-white);
+					--docsearch-searchbox-shadow: none;
+					--docsearch-searchbox-focus-background: color-mix(in oklab, var(--input) 50%, transparent);
+					--docsearch-key-gradient: transparent;
+					--docsearch-key-shadow: none;
+					--docsearch-highlight-color: var(--color-white);
+					--docsearch-searchbox-focus-background: color-mix(in oklab, var(--input) 50%, transparent);
+					--docsearch-modal-width: 700px;
+					--docsearch-modal-shadow: none;
+					--docsearch-container-background: color-mix(in oklab, var(--color-black) 75%, transparent);
+					--docsearch-modal-background: var(--background);
+					/* Cap modal height so a query with many hits doesn't push the
+					 * scrollable list off the bottom of the viewport. The
+					 * Dropdown's built-in max-height calc subtracts the search
+					 * box and footer from this value. */
+					--docsearch-modal-height: min(80vh, 720px);
+					--docsearch-hit-background: transparent;
+					--docsearch-hit-shadow: none;
+					--docsearch-key-pressed-shadow: none;
+					--docsearch-footer-height: 0;
+					border: 1px solid var(--input);
+					font-size: var(--text-sm);
+					width: calc(var(--spacing) * 4);
+					height: calc(var(--spacing) * 4);
+				/* Override DocSearch's top-anchored layout so the modal stays
+				 * vertically centered regardless of result count. The stock
+				 * rule is "margin: 60px auto auto", which pushes a tall
+				 * results list off the bottom of the viewport. */
+					justify-content: center;
+				/* Make the modal an actual flex column so the search bar
+				 * stays pinned at the top by layout (no scrolling can move
+				 * it out of view) and the dropdown fills the remaining
+				 * height as the sole scroll region. The stock CSS sets
+				 * flex-direction: column without display: flex, so children
+				 * lay out as block-level today and arrow-key navigation can
+				 * scroll the modal itself, taking the search bar offscreen.
+				 * overflow: hidden keeps tall hits lists from visibly
+				 * bleeding past the rounded corners; the dropdown's own
+				 * overflow provides the actual scroll container. */
+					border: 1px solid var(--input);
+					max-height: var(--docsearch-modal-height);
+				/* Pin the search bar so neither trackpad nor arrow-key
+				 * navigation can scroll it out of view. flex: 0 0 auto keeps
+				 * it at its intrinsic height regardless of content below. */
+					padding-bottom: var(--docsearch-spacing);
+				/* The dropdown is the sole scrollable region. flex: 1 1 auto
+				 * gives it an intrinsic flex-basis (its content size) so the
+				 * modal sizes itself to fit hits up to the modal's own
+				 * max-height. flex: 1 1 0 was wrong here: the parent has no
+				 * explicit height, so a basis of 0 collapsed the dropdown to
+				 * zero height and search results stopped rendering even
+				 * though the data was there. Override the stock max-height
+				 * calc (which targets the document, not the flex parent);
+				 * the modal's own max-height is what bounds us. min-height: 0
+				 * is required for flex children to be allowed to shrink past
+				 * their content size. position: relative establishes the
+				 * containing block for the bottom-fade indicator.
+				 * overscroll-behavior: contain prevents trackpad scroll-
+				 * chaining to the page underneath when the user reaches the
+				 * top or bottom of the result list. */
+					overscroll-behavior: contain;
+					/* Scroll-shadow indicators using the Komarov technique:
+					 * the fade only appears when there is more content beyond
+					 * the visible region in that direction. Each edge has two
+					 * layered backgrounds. The cover (solid modal-bg, pinned
+					 * to CONTENT via background-attachment: local) sits at the
+					 * top or bottom of the scrollable content and scrolls with
+					 * it. The shadow (gradient from bg to transparent, pinned
+					 * to the VIEWPORT via background-attachment: scroll) sits
+					 * at the top or bottom edge of the dropdown and stays put.
+					 * When the user is at the corresponding edge, the cover
+					 * overlaps the shadow and its opaque bg fully hides it. As
+					 * soon as the user scrolls away from the edge, the cover
+					 * moves out of the visible area and the shadow becomes
+					 * visible, signaling more content in that direction. The
+					 * previous implementation used position: sticky on an
+					 * ::after pseudo-element, which kept the bottom fade
+					 * visible at all times because sticky pins to a viewport
+					 * edge regardless of scroll position. */
+						linear-gradient(var(--docsearch-modal-background), var(--docsearch-modal-background)) top / 100% 48px no-repeat local,
+						linear-gradient(var(--docsearch-modal-background), var(--docsearch-modal-background)) bottom / 100% 48px no-repeat local,
+						linear-gradient(var(--docsearch-modal-background), transparent) top / 100% 48px no-repeat scroll,
+						linear-gradient(transparent, var(--docsearch-modal-background)) bottom / 100% 48px no-repeat scroll;
+					width: calc(var(--spacing) * 4);
+					height: calc(var(--spacing) * 4);
+					flex-direction: column;
+					gap: calc(var(--spacing) * 2);
+					color: var(--color-primary-foreground);
+					text-decoration: none;
+				/* Hide the lvl0-grouping section header. lvl0 was dropped from
+				 * searchableAttributes (audit/upload/05_drop_lvl0_searchable.py),
+				 * so visually grouping by it surfaces an arbitrary signal that
+				 * users found confusing. Hits render as a flat list; the lvl0
+				 * value still appears as a breadcrumb chip on each card. */
+[data-radix-scroll-area-viewport]{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}[data-radix-scroll-area-viewport]::-webkit-scrollbar{display:none}
+Port forwarding via SSH
+Using Let's Encrypt with Caddy
+Using Let's Encrypt with NGINX
+Using a self-signed certificate
+External authentication
+HTTPS and self-signed certificates
+Accessing web services
+ from the request path
+Proxying to create a React app
+Proxying to a Vue app
+Proxying to an Angular app
+Proxying to a Svelte app
+/absproxy/&lt;port&gt;
+Internationalization and customization
+Available keys and placeholders
+This article will walk you through exposing code-server securely once you've
+ expose code-server directly to the internet without some form of
+authentication and encryption, otherwise someone can take over your machine via
+By default, code-server uses password authentication. As such, you must copy the
+password from code-server's config file to log in. To avoid exposing itself
+unnecessarily, code-server listens on 
+; this practice is fine for
+testing, but it doesn't work if you want to access code-server from a different
+ code-server rate limits password authentication attempts to
+two per minute plus an additional twelve per hour.
+There are several approaches to operating and exposing code-server securely:
+Port forwarding via SSH
+Using Let's Encrypt with Caddy
+Using Let's Encrypt with NGINX
+Using a self-signed certificate
+Port forwarding via SSH
+We highly recommend using 
+code-server. If you have an SSH server on your remote machine, this approach
+doesn't require any additional setup at all.
+The downside to SSH forwarding, however, is that you can't access code-server
+when using machines without SSH clients (such as iPads). If this applies to you,
+we recommend using another method, such as 
+To work properly, your environment should have WebSockets enabled, which
+code-server uses to communicate between the browser and server.
+SSH into your instance and edit the code-server config file to disable
+password authentication:
+ in the code-server config.
+sed -i.bak 's/auth: password/auth: none/' ~/.config/code-server/config.yaml
+sudo systemctl restart code-server@$USER
+
+
+=== codeserver_faq.json ===
+left; } .osano-cm-dialog { background: 
+rgba(0,0,0,0.7); color: 
+#c6c6c6; } .osano-cm-dialog__close { color: 
+#c6c6c6; border-color: 
+rgba(0,0,0,0.7); } .osano-cm-dialog__close:hover { stroke: 
+#b2b2b2; } .osano-cm-dialog__close:focus:hover { stroke: 
+#141414; } .osano-cm-info-dialog { background: 
+rgba(0,0,0,0.45); } .osano-cm-header, .osano-cm-info-dialog-header { background: 
+#fff; background: linear-gradient( 180deg, 
+rgba(255,255,255,0) 100% ); } .osano-cm-info { background: 
+#fff; } .osano-cm-info-dialog-header__close:hover { stroke: 
+#141414; } .osano-cm-info-dialog-header__close:focus:hover { stroke: 
+#c6c6c6; } .osano-cm-disclosure__toggle, .osano-cm-expansion-panel__toggle { color: 
+#c6c6c6; } .osano-cm-disclosure__toggle:hover, .osano-cm-disclosure__toggle:active, .osano-cm-expansion-panel__toggle:hover, .osano-cm-expansion-panel__toggle:active { color: 
+#c6c6c6; } .osano-cm-disclosure__toggle:focus, .osano-cm-expansion-panel__toggle:focus { color: 
+#f2edff; border-color: 
+#000000; border-color: 
+#141414; } .osano-cm-link { color: 
+#c6c6c6; } .osano-cm-link:hover, .osano-cm-link:active { color: 
+#c6c6c6; } .osano-cm-link:focus { color: 
+#ffffff; border-color: 
+#37cd8f; border-color: 
+#37cd8f; } .osano-cm-toggle__input:checked + .osano-cm-toggle__switch::after, .osano-cm-toggle__input:checked + .osano-cm-toggle__switch::before { border-color: 
+#bebbeb; border-color: 
+#bebbeb; } .osano-cm-toggle__input:focus + .osano-cm-toggle__switch::before { border-color: 
+#23b97b; border-color: 
+#23b97b; } .osano-cm-toggle__input:checked:focus + .osano-cm-toggle__switch::before { border-color: 
+#928fbf; border-color: 
+#bfbfbf; border-color: 
+#008d4f; border-color: 
+#b4b4b4; border-color: 
+#b4b4b4; } .osano-cm-toggle__input:disabled:checked + .osano-cm-toggle__switch::before, .osano-cm-toggle__input:disabled:checked:focus + .osano-cm-toggle__switch::before, .osano-cm-toggle__input:disabled:checked:hover + .osano-cm-toggle__switch::before { border-color: transparent; } .osano-cm-widget__outline { fill: 
+#29246a; } .osano-cm-widget__dot { fill: 
+#37cd8f; } .osano-cm-tcf-purpose--label input { accent-color: 
+FAQ: code-server config, install extensions &amp; more | code-server Docs
+Opens in a new window
+Opens an external website
+Opens an external website in a new window
+This website utilizes technologies such as cookies to enable essential site functionality, as well as for analytics, personalization, and targeted advertising. 
+Close Cookie Preferences
+Deploy coding agents with consistency and control on self-hosted, network-isolated infrastructure.
+Self-hosted cloud development environments for your developers and their agents.
+A centralized gateway to observe and control LLM tool usage across your environments.
+Ecosystem Integrations
+AI-native Development
+Coder powers secure, scalable development across key industries — automotive, finance, government, and technology — enabling faster builds, tighter compliance, and seamless AI adoption in enterprise-grade cloud environments.
+Secure Environments for 2,500+ Developers
+How a U.S. defense intelligence organization centralized ATO compliance and established the military's first multi-tenant Coder deployment.
+Events &amp; Webinars
+Introducing Coder Agents: Self-Hosted AI Workflow Infrastructure
+					scroll-behavior: auto;
+					/* .selection::bg-sky-800! */
+					--docsearch-searchbox-background: color-mix(in oklab, var(--input) 30%, transparent);
+					--docsearch-muted-color: var(--color-muted-foreground);
+					--docsearch-text-color: var(--color-white);
+					--docsearch-searchbox-shadow: none;
+					--docsearch-searchbox-focus-background: color-mix(in oklab, var(--input) 50%, transparent);
+					--docsearch-key-gradient: transparent;
+					--docsearch-key-shadow: none;
+					--docsearch-highlight-color: var(--color-white);
+					--docsearch-searchbox-focus-background: color-mix(in oklab, var(--input) 50%, transparent);
+					--docsearch-modal-width: 700px;
+					--docsearch-modal-shadow: none;
+					--docsearch-container-background: color-mix(in oklab, var(--color-black) 75%, transparent);
+					--docsearch-modal-background: var(--background);
+					/* Cap modal height so a query with many hits doesn't push the
+					 * scrollable list off the bottom of the viewport. The
+					 * Dropdown's built-in max-height calc subtracts the search
+					 * box and footer from this value. */
+					--docsearch-modal-height: min(80vh, 720px);
+					--docsearch-hit-background: transparent;
+					--docsearch-hit-shadow: none;
+					--docsearch-key-pressed-shadow: none;
+					--docsearch-footer-height: 0;
+					border: 1px solid var(--input);
+					font-size: var(--text-sm);
+					width: calc(var(--spacing) * 4);
+					height: calc(var(--spacing) * 4);
+				/* Override DocSearch's top-anchored layout so the modal stays
+				 * vertically centered regardless of result count. The stock
+				 * rule is "margin: 60px auto auto", which pushes a tall
+				 * results list off the bottom of the viewport. */
+					justify-content: center;
+				/* Make the modal an actual flex column so the search bar
+				 * stays pinned at the top by layout (no scrolling can move
+				 * it out of view) and the dropdown fills the remaining
+				 * height as the sole scroll region. The stock CSS sets
+				 * flex-direction: column without display: flex, so children
+				 * lay out as block-level today and arrow-key navigation can
+				 * scroll the modal itself, taking the search bar offscreen.
+				 * overflow: hidden keeps tall hits lists from visibly
+				 * bleeding past the rounded corners; the dropdown's own
+				 * overflow provides the actual scroll container. */
+					border: 1px solid var(--input);
+					max-height: var(--docsearch-modal-height);
+				/* Pin the search bar so neither trackpad nor arrow-key
+				 * navigation can scroll it out of view. flex: 0 0 auto keeps
+				 * it at its intrinsic height regardless of content below. */
+					padding-bottom: var(--docsearch-spacing);
+				/* The dropdown is the sole scrollable region. flex: 1 1 auto
+				 * gives it an intrinsic flex-basis (its content size) so the
+				 * modal sizes itself to fit hits up to the modal's own
+				 * max-height. flex: 1 1 0 was wrong here: the parent has no
+				 * explicit height, so a basis of 0 collapsed the dropdown to
+				 * zero height and search results stopped rendering even
+				 * though the data was there. Override the stock max-height
+				 * calc (which targets the document, not the flex parent);
+				 * the modal's own max-height is what bounds us. min-height: 0
+				 * is required for flex children to be allowed to shrink past
+				 * their content size. position: relative establishes the
+				 * containing block for the bottom-fade indicator.
+				 * overscroll-behavior: contain prevents trackpad scroll-
+				 * chaining to the page underneath when the user reaches the
+				 * top or bottom of the result list. */
+					overscroll-behavior: contain;
+					/* Scroll-shadow indicators using the Komarov technique:
+					 * the fade only appears when there is more content beyond
+					 * the visible region in that direction. Each edge has two
+					 * layered backgrounds. The cover (solid modal-bg, pinned
+					 * to CONTENT via background-attachment: local) sits at the
+					 * top or bottom of the scrollable content and scrolls with
+					 * it. The shadow (gradient from bg to transparent, pinned
+					 * to the VIEWPORT via background-attachment: scroll) sits
+					 * at the top or bottom edge of the dropdown and stays put.
+					 * When the user is at the corresponding edge, the cover
+					 * overlaps the shadow and its opaque bg fully hides it. As
+					 * soon as the user scrolls away from the edge, the cover
+					 * moves out of the visible area and the shadow becomes
+					 * visible, signaling more content in that direction. The
+					 * previous implementation used position: sticky on an
+					 * ::after pseudo-element, which kept the bottom fade
+					 * visible at all times because sticky pins to a viewport
+					 * edge regardless of scroll position. */
+						linear-gradient(var(--docsearch-modal-background), var(--docsearch-modal-background)) top / 100% 48px no-repeat local,
+						linear-gradient(var(--docsearch-modal-background), var(--docsearch-modal-background)) bottom / 100% 48px no-repeat local,
+						linear-gradient(var(--docsearch-modal-background), transparent) top / 100% 48px no-repeat scroll,
+						linear-gradient(transparent, var(--docsearch-modal-background)) bottom / 100% 48px no-repeat scroll;
+					width: calc(var(--spacing) * 4);
+					height: calc(var(--spacing) * 4);
+					flex-direction: column;
+					gap: calc(var(--spacing) * 2);
+					color: var(--color-primary-foreground);
+					text-decoration: none;
+				/* Hide the lvl0-grouping section header. lvl0 was dropped from
+				 * searchableAttributes (audit/upload/05_drop_lvl0_searchable.py),
+				 * so visually grouping by it surfaces an arbitrary signal that
+				 * users found confusing. Hits render as a flat list; the lvl0
+				 * value still appears as a breadcrumb chip on each card. */
+[data-radix-scroll-area-viewport]{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}[data-radix-scroll-area-viewport]::-webkit-scrollbar{display:none}
+How should I expose code-server to the internet?
+Can I use code-server on the iPad?
+How does the config file work?
+How do I make my keyboard shortcuts work?
+Why can't code-server use Microsoft's extension marketplace?
+How can I request an extension that's missing from the marketplace?
+How do I install an extension?
+How do I install an extension manually?
+How do I use my own extensions marketplace?
+Where are extensions stored?
+Where is VS Code configuration stored?
+How can I reuse my VS Code configuration?
+How does code-server decide what workspace or folder to open?
+How do I access my Documents/Downloads/Desktop folders in code-server on macOS?
+How do I direct server-side requests through a proxy?
+How do I debug issues with code-server?
+What is the healthz endpoint?
+What is the heartbeat file?
+How do I change the reconnection grace time?
+How do I change the password?
+Can I store my password hashed?
+Is multi-tenancy possible?
+Can I use Docker in a code-server container?
+How do I disable telemetry?
+What's the difference between code-server and Coder?
+What's the difference between code-server and Theia?
+What's the difference between code-server and OpenVSCode-Server?
+What's the difference between code-server and GitHub Codespaces?
+What's the difference between code-server and VS Code web?
+Does code-server have any security login validation?
+Are there community projects involving code-server?
+How do I change the port?
+How do I hide the coder/coder promotion in Help: Getting Started?
+How do I disable the proxy?
+How do I disable file download?
+Why do web views not work?
+Please file all questions and support requests at
+https://github.com/coder/code-server/discussions
+How should I expose code-server to the internet?
+our instructions on exposing code-server safely to the
+Can I use code-server on the iPad?
+ for information on using code-server on the iPad.
+How does the config file work?
+ starts up, it creates a default config file in 
+~/.config/code-server/config.yaml
+# Randomly generated for each config.yaml
+The default config defines the following behavior:
+Listen on the loopback IP port 8080
+Enable password authorization
+Each key in the file maps directly to a 
+ to see a listing of all the flags). Any flags passed to 
+
+
+=== codeserver_cli.json ===
+left; } .osano-cm-dialog { background: 
+rgba(0,0,0,0.7); color: 
+#c6c6c6; } .osano-cm-dialog__close { color: 
+#c6c6c6; border-color: 
+rgba(0,0,0,0.7); } .osano-cm-dialog__close:hover { stroke: 
+#b2b2b2; } .osano-cm-dialog__close:focus:hover { stroke: 
+#141414; } .osano-cm-info-dialog { background: 
+rgba(0,0,0,0.45); } .osano-cm-header, .osano-cm-info-dialog-header { background: 
+#fff; background: linear-gradient( 180deg, 
+rgba(255,255,255,0) 100% ); } .osano-cm-info { background: 
+#fff; } .osano-cm-info-dialog-header__close:hover { stroke: 
+#141414; } .osano-cm-info-dialog-header__close:focus:hover { stroke: 
+#c6c6c6; } .osano-cm-disclosure__toggle, .osano-cm-expansion-panel__toggle { color: 
+#c6c6c6; } .osano-cm-disclosure__toggle:hover, .osano-cm-disclosure__toggle:active, .osano-cm-expansion-panel__toggle:hover, .osano-cm-expansion-panel__toggle:active { color: 
+#c6c6c6; } .osano-cm-disclosure__toggle:focus, .osano-cm-expansion-panel__toggle:focus { color: 
+#f2edff; border-color: 
+#000000; border-color: 
+#141414; } .osano-cm-link { color: 
+#c6c6c6; } .osano-cm-link:hover, .osano-cm-link:active { color: 
+#c6c6c6; } .osano-cm-link:focus { color: 
+#ffffff; border-color: 
+#37cd8f; border-color: 
+#37cd8f; } .osano-cm-toggle__input:checked + .osano-cm-toggle__switch::after, .osano-cm-toggle__input:checked + .osano-cm-toggle__switch::before { border-color: 
+#bebbeb; border-color: 
+#bebbeb; } .osano-cm-toggle__input:focus + .osano-cm-toggle__switch::before { border-color: 
+#23b97b; border-color: 
+#23b97b; } .osano-cm-toggle__input:checked:focus + .osano-cm-toggle__switch::before { border-color: 
+#928fbf; border-color: 
+#bfbfbf; border-color: 
+#008d4f; border-color: 
+#b4b4b4; border-color: 
+#b4b4b4; } .osano-cm-toggle__input:disabled:checked + .osano-cm-toggle__switch::before, .osano-cm-toggle__input:disabled:checked:focus + .osano-cm-toggle__switch::before, .osano-cm-toggle__input:disabled:checked:hover + .osano-cm-toggle__switch::before { border-color: transparent; } .osano-cm-widget__outline { fill: 
+#29246a; } .osano-cm-widget__dot { fill: 
+#37cd8f; } .osano-cm-tcf-purpose--label input { accent-color: 
+Opens in a new window
+Opens an external website
+Opens an external website in a new window
+This website utilizes technologies such as cookies to enable essential site functionality, as well as for analytics, personalization, and targeted advertising. 
+Close Cookie Preferences
+Deploy coding agents with consistency and control on self-hosted, network-isolated infrastructure.
+Self-hosted cloud development environments for your developers and their agents.
+A centralized gateway to observe and control LLM tool usage across your environments.
+Ecosystem Integrations
+AI-native Development
+Coder powers secure, scalable development across key industries — automotive, finance, government, and technology — enabling faster builds, tighter compliance, and seamless AI adoption in enterprise-grade cloud environments.
+Secure Environments for 2,500+ Developers
+How a U.S. defense intelligence organization centralized ATO compliance and established the military's first multi-tenant Coder deployment.
+Events &amp; Webinars
+Introducing Coder Agents: Self-Hosted AI Workflow Infrastructure
+Use arrow keys to move
+Oops, something went wrong. Defeat the Bugs to return home.
+(self.__next_f=self.__next_f||[]).push([0])
+self.__next_f.push([1,"1:\"$Sreact.fragment\"\n3:I[47172,[\"7177\",\"static/chunks/app/layout-93f2035978e166ab.js?dpl=dpl_F3Fxg62xvUaRBikTDyViqw2UmyKr\"],\"\"]\nc:I[94637,[\"4219\",\"static/chunks/app/global-error-93aff30f61d7cd74.js?dpl=dpl_F3Fxg62xvUaRBikTDyViqw2UmyKr\"],\"default\"]\n:HL[\"/_next/static/css/30a3e51a08f45a97.css?dpl=dpl_F3Fxg62xvUaRBikTDyViqw2UmyKr\",\"style\"]\n2:T475,{\"@context\":\"https://schema.org\",\"@type\":\"Organization\",\"name\":\"Coder\",\"url\":\"https://coder.com/\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https://coder.com/coder-logo-horizontal.png\",\"width\":\"364\",\"height\":\"81\",\"contentUrl\":\"https://coder.com/coder-logo-horizontal.png\"},\"description\":\"Coder is an enterprise platform for deploying self-hosted development environments and AI coding agents on governed infrastructure, giving platform teams centralized control over security, models, and spend.\",\"foundingDate\":\"2017-08\",\"address\":{\"@type\":\"PostalAddress\",\"streetAddress\":\"9901 Brodie Lane Suite 160 #1212\",\"addressLocality\":\"Austin\",\"addressRegion\":\"TX\",\"postalCode\":\"78748-5892\",\"addressCountry\":\"US\"},\"contactPoint\":[{\"@type\":\"ContactPoint\",\"email\":\"ask@coder.com\",\"contactType\":\"General Inquiry\"},{\"@type\":\"ContactPoint\",\"email\":\"support@coder.com\",\"contactType\":\"Customer Support\"}],\"sameAs\":[\"https://www.linkedin.com/company/coderhq/\",\"https://x.com/coderhq\",\"https://www.youtube.com/channel/UCWexK_ECcUU3vEIdb-Vykfw\",\"https://github.com/coder\"],\"employee\":{\"@type\":\"Person\",\"name\":\"Robert Whiteley\",\"jobTitle\":\"Chief Executive Officer\"}}"])
+self.__next_f.push([1,"0:{\"P\":null,\"c\":[\"\",\"docs\",\"code-server%2Fcli\"],\"q\":\"\",\"i\":false,\"f\":[[[\"\",{\"children\":[\"_not-found\",{\"children\":[\"__PAGE__\",{}]}]},\"$undefined\",\"$undefined\",16],[[\"$\",\"$1\",\"c\",{\"children\":[[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/css/30a3e51a08f45a97.css?dpl=dpl_F3Fxg62xvUaRBikTDyViqw2UmyKr\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}]],[\"$\",\"html\",null,{\"lang\":\"en\",\"children\":[[\"$\",\"head\",null,{\"children\":[[\"$\",\"link\",null,{\"rel\":\"manifest\",\"href\":\"/manifest.json\"}],[\"$\",\"link\",null,{\"rel\":\"alternate\",\"type\":\"application/rss+xml\",\"title\":\"Coder Blog\",\"href\":\"/api/rss.xml\"}],[\"$\",\"link\",null,{\"rel\":\"apple-touch-icon\",\"sizes\":\"180x180\",\"href\":\"/favicon-180x180-light.png\",\"media\":\"(prefers-color-scheme: light)\"}],[\"$\",\"link\",null,{\"rel\":\"icon\",\"type\":\"image/svg+xml\",\"sizes\":\"192x192\",\"href\":\"/favicon-192x192-light.svg\",\"media\":\"(prefers-color-scheme: light)\"}],[\"$\",\"link\",null,{\"rel\":\"icon\",\"type\":\"image/svg+xml\",\"sizes\":\"48x48\",\"href\":\"/favicon-48x48-light.svg\",\"media\":\"(prefers-color-scheme: light)\"}],[\"$\",\"link\",null,{\"rel\":\"icon\",\"type\":\"image/svg+xml\",\"sizes\":\"32x32\",\"href\":\"/favicon-32x32-light.svg\",\"media\":\"(prefers-color-scheme: light)\"}],[\"$\",\"link\",null,{\"rel\":\"icon\",\"type\":\"image/svg+xml\",\"sizes\":\"16x16\",\"href\":\"/favicon-16x16-light.svg\",\"media\":\"(prefers-color-scheme: light)\"}],[\"$\",\"link\",null,{\"rel\":\"mask-icon\",\"href\":\"/favicon-32x32-light.svg\",\"color\":\"#090B0B\",\"media\":\"(prefers-color-scheme: light)\"}],[\"$\",\"link\",null,{\"rel\":\"apple-touch-icon\",\"sizes\":\"180x180\",\"href\":\"/favicon-180x180-dark.png\",\"media\":\"(prefers-color-scheme: dark)\"}],[\"$\",\"link\",null,{\"rel\":\"icon\",\"type\":\"image/svg+xml\",\"sizes\":\"192x192\",\"href\":\"/favicon-192x192-dark.svg\",\"media\":\"(prefers-color-scheme: dark)\"}],[\"$\",\"link\",null,{\"rel\":\"icon\",\"type\":\"image/svg+xml\",\"sizes\":\"48x48\",\"href\":\"/favicon-48x48-dark.svg\",\"media\":\"(prefers-color-scheme: dark)\"}],[\"$\",\"link\",null,{\"rel\":\"icon\",\"type\":\"image/svg+xml\",\"sizes\":\"32x32\",\"href\":\"/favicon-32x32-dark.svg\",\"media\":\"(prefers-color-scheme: dark)\"}],[\"$\",\"link\",null,{\"rel\":\"icon\",\"type\":\"image/svg+xml\",\"sizes\":\"16x16\",\"href\":\"/favicon-16x16-dark.svg\",\"media\":\"(prefers-color-scheme: dark)\"}],[\"$\",\"link\",null,{\"rel\":\"mask-icon\",\"href\":\"/favicon-32x32-dark.svg\",\"color\":\"#FFFFFF\",\"media\":\"(prefers-color-scheme: dark)\"}],[\"$\",\"script\",null,{\"type\":\"application/ld+json\",\"dangerouslySetInnerHTML\":{\"__html\":\"$2\"}}]]}],[\"$\",\"$L3\",null,{\"id\":\"consent-mode\",\"children\":\"\\n\\t\\t\\t\\t\\twindow.dataLayer = window.dataLayer || [];\\n\\t\\t\\t\\t\\tfunction gtag(){dataLayer.push(arguments);}\\n\\t\\t\\t\\t\\tgtag('consent', 'default', {\\n\\t\\t\\t\\t\\t\\t'ad_storage': 'denied',\\n\\t\\t\\t\\t\\t\\t'analytics_storage': 'denied',\\n\\t\\t\\t\\t\\t\\t'ad_user_data': 'denied',\\n\\t\\t\\t\\t\\t\\t'ad_personalization': 'denied',\\n\\t\\t\\t\\t\\t\\t'personalization_storage': 'denied',\\n\\t\\t\\t\\t\\t\\t'functionality_storage': 'granted',\\n\\t\\t\\t\\t\\t\\t'security_storage': 'granted',\\n\\t\\t\\t\\t\\t\\t'wait_for_update': 500\\n\\t\\t\\t\\t\\t});\\n\\t\\t\\t\\t\\tgtag(\\\"set\\\", \\\"ads_data_redaction\\\", true);\\n\\t\\t\\t\\t\"}],\"$L4\",\"$L5\",\"$L6\",\"$L7\"]}]]}],{\"children\":[\"$L8\",{\"children\":[\"$L9\",{},null,false,null]},null,false,\"$@a\"]},null,false,null],\"$Lb\",false]],\"m\":\"$undefined\",\"G\":[\"$c\",[]],\"S\":true,\"h\":null,\"s\":\"$undefined\",\"l\":\"$undefined\",\"p\":\"$undefined\",\"d\":\"$undefined\"}\n"])
+self.__next_f.push([1,"d:I[18320,[\"7177\",\"static/chunks/app/layout-93f2035978e166ab.js?dpl=dpl_F3Fxg62xvUaRBikTDyViqw2UmyKr\"],\"GoogleTagManager\"]\ne:I[38244,[\"7177\",\"static/chunks/app/layout-93f2035978e166ab.js?dpl=dpl_F3Fxg62xvUaRBikTDyViqw2UmyKr\"],\"ImageFadeProvider\"]\nf:I[76344,[],\"\"]\n10:I[31118,[],\"\"]\n11:I[86632,[\"1406\",\"static/chunks/1406-230d19c79a275ce3.js?dpl=dpl_F3Fxg62xvUaRBikTDyViqw2UmyKr\",\"1472\",\"static/chunks/1472-732c34f8894f84ee.js?dpl=dpl_F3Fxg62xvUaRBikTDyViqw2UmyKr\",\"9609\",\"static/chunks/9609-7e5b07b892c00c2a.js?dpl=dpl_F3Fxg62xvUaRBikTDyViqw2UmyKr\",\"6959\",\"static/chunks/6959-f4bffa1d6d8b88bf.js?dpl=dpl_F3Fxg62xvUaRBikTDyViqw2UmyKr\",\"3320\",\"static/chunks/3320-e8bf946d906161ca.js?dpl=dpl_F3Fxg62xvUaRBikTDyViqw2UmyKr\",\"3138\",\"static/chunks/3138-513366301837669b.js?dpl=dpl_F3Fxg62xvUaRBikTDyViqw2UmyKr\",\"6726\",\"static/chunks/app/not-found-98747f0232d11688.js?dpl=dpl_F3Fxg62xvUaRBikTDyViqw2UmyKr\"],\"default\"]\n12:I[72933,[],\"ClientPageRoot\"]\n15:I[28277,[],\"OutletBoundary\"]\n16:\"$Sreact.suspense\"\n19:I[28277,[],\"ViewportBoundary\"]\n1b:I[28277,[],\"MetadataBoundary\"]\n4:[\"$\",\"$L3\",null,{\"src\":\"https://cmp.osano.com/169v1SUOmadVfAN6F/8d6c8df8-c66d-4a59-8177-bfeb7e03626a/osano.js\"}]\n5:[\"$\",\"$L3\",null,{\"id\":\"pathfactory-iframe-script\",\"children\":\"\\n\\t\\t\\t\\t\\tif (window !== window.top) {\\n\\t\\t\\t\\t\\t\\tvar styleEl = document.createElement(\\\"style\\\");\\n\\t\\t\\t\\t\\t\\tstyleEl.innerHTML = \\\"header { display: none; } header ~ .container { padding-top: 3.75rem; }\\\";\\n\\t\\t\\t\\t\\t\\tdocument.head.appendChild(styleEl);\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\"}]\n6:[\"$\",\"$Ld\",null,{\"gtmId\":\"GTM-NLLNT3K\"}]\n7:[\"$\",\"body\",null,{\"className\":\"overflow-x-clip!\",\"children\":[\"$\",\"$Le\",null,{\"children\":[\"$\",\"$Lf\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L10\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[\"$\",\"$L11\",null,{}],[]],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]}]}]\n8:[\"$\",\"$1\",\"c\",{\"children\":[null,[\"$\",\"$Lf\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L10\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]]}]\n9:[\"$\",\"$1\",\"c\",{\"children\":[[\"$\",\"$L12\",null,{\"Component\":\"$11\",\"serverProvidedParams\":{\"searchParams\":{},\"params\":{},\"promises\":[\"$@13\",\"$@14\"]}}],null,[\"$\",\"$L15\",null,{\"children\":[\"$\",\"$16\",null,{\"name\":\"Next.MetadataOutlet\",\"children\":\"$@17\"}]}]]}]\n18:[]\na:\"$W18\"\nb:[\"$\",\"$1\",\"h\",{\"children\":[[\"$\",\"meta\",null,{\"name\":\"robots\",\"content\":\"noindex\"}],[\"$\",\"$L19\",null,{\"children\":\"$L1a\"}],[\"$\",\"div\",null,{\"hidden\":true,\"children\":[\"$\",\"$L1b\",null,{\"children\":[\"$\",\"$16\",null,{\"name\":\"Next.Metadata\",\"children\":\"$L1c\"}]}]}],null]}]\n"])
+self.__next_f.push([1,"13:{}\n14:\"$9:props:children:0:props:serverProvidedParams:params\"\n"])
+self.__next_f.push([1,"1a:[[\"$\",\"meta\",\"0\",{\"charSet\":\"utf-8\"}],[\"$\",\"meta\",\"1\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}]]\n"])
+self.__next_f.push([1,"17:null\n"])
+self.__next_f.push([1,"1c:[[\"$\",\"title\",\"0\",{\"children\":\"Coder\"}],[\"$\",\"meta\",\"1\",{\"name\":\"description\",\"content\":\"Self-hosted cloud development environments. Onboard developers in seconds, build AI-powered coding agents, and manage security at scale.\"}],[\"$\",\"meta\",\"2\",{\"name\":\"og:logo\",\"content\":\"/_next/static/media/coder-logo.70f21649.png\"}],[\"$\",\"meta\",\"3\",{\"name\":\"msapplication-TileColor\",\"content\":\"#ffffff\"}],[\"$\",\"meta\",\"4\",{\"property\":\"og:title\",\"content\":\"Coder\"}],[\"$\",\"meta\",\"5\",{\"property\":\"og:description\",\"content\":\"Self-hosted cloud development environments. Onboard developers in seconds, build AI-powered coding agents, and manage security at scale.\"}],[\"$\",\"meta\",\"6\",{\"property\":\"og:site_name\",\"content\":\"Coder\"}],[\"$\",\"meta\",\"7\",{\"property\":\"og:locale\",\"content\":\"en_US\"}],[\"$\",\"meta\",\"8\",{\"property\":\"og:image\",\"content\":\"https://coder.com/_next/static/media/OpenGraph.37da9236.jpg\"}],[\"$\",\"meta\",\"9\",{\"property\":\"og:image:width\",\"content\":\"1200\"}],[\"$\",\"meta\",\"10\",{\"property\":\"og:image:height\",\"content\":\"630\"}],[\"$\",\"meta\",\"11\",{\"property\":\"og:image:alt\",\"content\":\"Coder - Enterprise AI Development Infrastructure\"}],[\"$\",\"meta\",\"12\",{\"property\":\"og:type\",\"content\":\"website\"}],[\"$\",\"meta\",\"13\",{\"name\":\"twitter:card\",\"content\":\"summary_large_image\"}],[\"$\",\"meta\",\"14\",{\"name\":\"twitter:title\",\"content\":\"Coder\"}],[\"$\",\"meta\",\"15\",{\"name\":\"twitter:description\",\"content\":\"Self-hosted cloud development environments. Onboard developers in seconds, build AI-powered coding agents, and manage security at scale.\"}],[\"$\",\"meta\",\"16\",{\"name\":\"twitter:image\",\"content\":\"https://coder.com/_next/static/media/OpenGraph.37da9236.jpg\"}],[\"$\",\"meta\",\"17\",{\"name\":\"twitter:image:alt\",\"content\":\"Coder - Enterprise AI Development Infrastructure\"}],[\"$\",\"meta\",\"18\",{\"name\":\"twitter:image:width\",\"content\":\"1200\"}],[\"$\",\"meta\",\"19\",{\"name\":\"twitter:image:height\",\"content\":\"630\"}]]\n"])
+					window.dataLayer = window.dataLayer || [];
+					function gtag(){dataLayer.push(arguments);}
+					gtag('consent', 'default', {
+						'ad_storage': 'denied',
+						'analytics_storage': 'denied',
+						'ad_user_data': 'denied',
+						'ad_personalization': 'denied',
+						'personalization_storage': 'denied',
+						'functionality_storage': 'granted',
+						'security_storage': 'granted',
+						'wait_for_update': 500
+					gtag("set", "ads_data_redaction", true);
+					if (window !== window.top) {
+						var styleEl = document.createElement("style");
+						styleEl.innerHTML = "header { display: none; } header ~ .container { padding-top: 3.75rem; }";
+						document.head.appendChild(styleEl);
+        w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});
+      })(window,'dataLayer');
+var hsscript=document.createElement("script");hsscript.id="wphs";hsscript.src="https://cdn.jsdelivr.net/npm/hockeystack@latest/hockeystack.min.js";hsscript.async=1;hsscript.dataset.apikey="6fc71fd157d9150355c4efeba0bba3";hsscript.dataset.cookieless=1;hsscript.dataset.autoIdentify=1;document.getElementsByTagName("head")[0].append(hsscript);
+window[function(d,e){for(var b="",c=0;c
+(function(){if(typeof window!=="undefined"&&typeof window.signals==="undefined"){var a=document.createElement("script");a.src="https://cdn.cr-relay.com/v1/site/66c41d01-8b45-4e88-968a-410204899d11/signals.js";a.async=!0;window.signals=Object.assign([],["page","identify","form"].reduce(function(b,c){b[c]=function(){signals.push([c,arguments]);return signals};return b},{}));document.head.appendChild(a)}})();
+(function(a,e,f,g,b,c,d){a.pfObject=b;a[b]=a[b]||function(){(a[b].q=a[b].q||[]).push(arguments)};a[b].l=1*new Date;c=e.createElement(f);d=e.getElementsByTagName(f)[0];c.async=1;c.src=g;d.parentNode.insertBefore(c,d)})(window,document,"script","https://cdn-app.pathfactory.com/production/jukebox-lite/current/jukebox.js","pf");pf("create","LB-CE6E0F16-11220");
+(function(d,e,f,b,c,a){c="";b="https://tracking-api.g2.com/attribution_tracking/conversions/"+d+".js?p\x3d"+encodeURI(e)+"\x26e\x3d"+c;a=document.createElement("script");a.type="application/javascript";a.async=!0;a.src=b;f.getElementsByTagName("head")[0].appendChild(a)})("1028452",document.location.href,document);
+!function(){function f(b){try{var d=window&&window.localStorage&&window.localStorage.getItem("DD_DEBUGGER");var c="true"===d||"1"===d}catch(p){c=!1}if(c)try{var e=window.console,q=Array.prototype.slice.call(arguments,1),l=e&&e[b]?e[b]:e&&e.log?e.log:null;l&&l.apply(e,q)}catch(p){}}var g="dreamdata",m="dreamdata-analytics",h=!1,a=window[g]=window[g]||[];if(!a.initialize)if(a.invoked)f("warn","Dreamdata snippet included twice.");else{a.invoked=!0;a.methods="trackSubmit trackClick trackLink trackForm pageview identify reset group track ready alias debug page screen once off on addSourceMiddleware addIntegrationMiddleware setAnonymousId addDestinationMiddleware register".split(" ");
+a.factory=function(b){return function(){if(window[g].initialized)return window[g][b].apply(window[g],arguments);var d=Array.prototype.slice.call(arguments);if("track screen alias group page identify".split(" ").indexOf(b)>-1){var c=document.querySelector("link[rel\x3d'canonical']");d.push({__t:"bpc",c:c&&c.getAttribute("href")||void 0,p:location.pathname,u:location.href,s:location.search,t:document.title,r:document.referrer})}return d.unshift(b),a.push(d),a}};for(var k=0;k
+!function(){if(!window.dreamdata||!window.dreamdata.initialized){if(window.dreamdata){var c=document.getElementById("dreamdata-analytics");if(c&&c.type&&"text/javascript"==c.type)return}var d="dreamdata-cl",a=window[d]=window[d]||[];if(!a.initialize)if(a.invoked)window.console&&console.error&&console.error("Dreamdata CL snippet included twice.");else{a.invoked=!0;a.methods="trackSubmit trackClick trackLink trackForm pageview identify reset group track ready alias debug page screen once off on addSourceMiddleware addIntegrationMiddleware setAnonymousId addDestinationMiddleware register".split(" ");
+a.factory=function(b){return function(){if(window[d].initialized)return window[d][b].apply(window[d],arguments);var e=Array.prototype.slice.call(arguments);if("track screen alias group page identify".split(" ").indexOf(b)>-1){var f=document.querySelector("link[rel\x3d'canonical']");e.push({__t:"bpc",c:f&&f.getAttribute("href")||void 0,p:location.pathname,u:location.href,s:location.search,t:document.title,r:document.referrer})}return e.unshift(b),a.push(e),a}};for(c=0;c

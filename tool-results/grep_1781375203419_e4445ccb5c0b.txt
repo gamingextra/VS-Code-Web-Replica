@@ -1,0 +1,252 @@
+/home/z/my-project/backend/search/Makefile:1:# =============================================================================
+/home/z/my-project/backend/search/Makefile:3:# =============================================================================
+/home/z/my-project/backend/search/Dockerfile:1:# =============================================================================
+/home/z/my-project/backend/search/Dockerfile:3:# =============================================================================
+/home/z/my-project/backend/search/Dockerfile:11:# =============================================================================
+/home/z/my-project/backend/copilot/completion/templates.py:46:# =====================================================================
+/home/z/my-project/backend/copilot/completion/templates.py:48:# =====================================================================
+/home/z/my-project/backend/copilot/completion/templates.py:177:# =====================================================================
+/home/z/my-project/backend/copilot/completion/templates.py:179:# =====================================================================
+/home/z/my-project/backend/copilot/completion/templates.py:244:# =====================================================================
+/home/z/my-project/backend/copilot/completion/templates.py:246:# =====================================================================
+/home/z/my-project/backend/copilot/completion/templates.py:354:# =====================================================================
+/home/z/my-project/backend/copilot/completion/templates.py:356:# =====================================================================
+/home/z/my-project/backend/copilot/completion/templates.py:415:# =====================================================================
+/home/z/my-project/backend/copilot/completion/templates.py:417:# =====================================================================
+/home/z/my-project/backend/copilot/completion/templates.py:476:# =====================================================================
+/home/z/my-project/backend/copilot/completion/templates.py:478:# =====================================================================
+/home/z/my-project/backend/copilot/completion/templates.py:531:# =====================================================================
+/home/z/my-project/backend/copilot/completion/templates.py:533:# =====================================================================
+/home/z/my-project/backend/copilot/completion/templates.py:586:# =====================================================================
+/home/z/my-project/backend/copilot/completion/templates.py:588:# =====================================================================
+/home/z/my-project/backend/copilot/completion/templates.py:635:# =====================================================================
+/home/z/my-project/backend/copilot/completion/templates.py:637:# =====================================================================
+/home/z/my-project/backend/copilot/completion/templates.py:678:# =====================================================================
+/home/z/my-project/backend/copilot/completion/templates.py:680:# =====================================================================
+/home/z/my-project/backend/copilot/completion/templates.py:740:# =====================================================================
+/home/z/my-project/backend/copilot/completion/templates.py:742:# =====================================================================
+/home/z/my-project/backend/sandbox/Dockerfile:1:# =============================================================================
+/home/z/my-project/backend/sandbox/Dockerfile:3:# =============================================================================
+/home/z/my-project/backend/sandbox/Dockerfile:9:# =============================================================================
+/home/z/my-project/skills/web-search/scripts/web_search.ts:23:    console.log('================\n');
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:9:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:11:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:18:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:20:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:28:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:30:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:33:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:35:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:71:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:73:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:88:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:90:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:93:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:95:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:160:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:162:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:262:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:264:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:443:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:445:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:567:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:569:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:705:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:707:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:797:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:799:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:867:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:869:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:918:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:920:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:998:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:1000:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:1086:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:1088:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:1165:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:1167:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:1264:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:1266:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:1269:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:1271:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:1300:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:1302:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:1321:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:1323:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:1356:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:1358:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:1377:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_report_template.tex:1379:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:7:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:9:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:55:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:57:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:96:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:98:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:111:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:113:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:142:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:144:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:164:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:166:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:314:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:316:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:334:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:336:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:356:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:358:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:377:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:379:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:396:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:398:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:416:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:418:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:450:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:452:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:491:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:493:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:500:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:502:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:542:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:544:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:560:% ============================================================================
+/home/z/my-project/skills/market-research-reports/assets/market_research.sty:562:% ============================================================================
+/home/z/my-project/skills/pdf/scripts/pdf.py:2078:        print("\n========================\nPDF Information\n========================")
+/home/z/my-project/skills/pdf/scripts/pdf.py:2090:        print(f"\n========================\nLayout Issues ({len(layout)})\n========================")
+/home/z/my-project/skills/pdf/scripts/pdf.py:2095:        print(f"\n========================\nWarnings ({len(warnings)})\n========================")
+/home/z/my-project/skills/pdf/scripts/pdf.py:2100:        print("\n========================\nErrors\n========================")
+/home/z/my-project/skills/pdf/scripts/pdf_qa.py:4:=============================
+/home/z/my-project/skills/pdf/scripts/pdf_qa.py:35:# ============================================================
+/home/z/my-project/skills/pdf/scripts/pdf_qa.py:37:# ============================================================
+/home/z/my-project/skills/pdf/scripts/pdf_qa.py:62:# ============================================================
+/home/z/my-project/skills/pdf/scripts/pdf_qa.py:64:# ============================================================
+/home/z/my-project/skills/pdf/scripts/pdf_qa.py:759:# ============================================================
+/home/z/my-project/skills/pdf/scripts/pdf_qa.py:761:# ============================================================
+/home/z/my-project/skills/quiz-html/templates/quiz_template.html:12:/* ============ 顶部条 ============ */
+/home/z/my-project/skills/quiz-html/templates/quiz_template.html:45:/* ============ 主体 ============ */
+/home/z/my-project/skills/quiz-html/templates/quiz_template.html:73:/* ============ 右侧 ============ */
+/home/z/my-project/skills/quiz-html/templates/quiz_template.html:153:/* ============ 导航条 ============ */
+/home/z/my-project/skills/quiz-html/templates/quiz_template.html:162:/* ============ Modal ============ */
+/home/z/my-project/skills/quiz-html/templates/quiz_template.html:180:/* ============ 模拟考模式 ============ */
+/home/z/my-project/skills/quiz-html/templates/quiz_template.html:236:/* ============ 移动端 ============ */
+/home/z/my-project/skills/quiz-html/templates/quiz_template.html:252:/* ============ Dark Mode ============ */
+/home/z/my-project/skills/quiz-html/templates/quiz_template.html:465:/* ============================================
+/home/z/my-project/skills/quiz-html/templates/quiz_template.html:468: * ============================================ */
+/home/z/my-project/skills/quiz-html/templates/quiz_template.html:1134:/* ============================================
+/home/z/my-project/skills/quiz-html/templates/quiz_template.html:1136: * ============================================ */
+/home/z/my-project/skills/pdf/scripts/setup.sh:20:echo "============================================"
+/home/z/my-project/skills/pdf/scripts/setup.sh:22:echo "============================================"
+/home/z/my-project/skills/pdf/scripts/setup.sh:265:echo "============================================"
+/home/z/my-project/skills/pdf/scripts/setup.sh:269:echo "============================================"
+/home/z/my-project/skills/quiz-html/examples/demo.html:12:/* ============ 顶部条 ============ */
+/home/z/my-project/skills/quiz-html/examples/demo.html:45:/* ============ 主体 ============ */
+/home/z/my-project/skills/quiz-html/examples/demo.html:68:/* ============ 右侧 ============ */
+/home/z/my-project/skills/quiz-html/examples/demo.html:148:/* ============ 导航条 ============ */
+/home/z/my-project/skills/quiz-html/examples/demo.html:157:/* ============ Modal ============ */
+/home/z/my-project/skills/quiz-html/examples/demo.html:175:/* ============ 模拟考模式 ============ */
+/home/z/my-project/skills/quiz-html/examples/demo.html:231:/* ============ 移动端 ============ */
+/home/z/my-project/skills/quiz-html/examples/demo.html:247:/* ============ Dark Mode ============ */
+/home/z/my-project/skills/quiz-html/examples/demo.html:458:/* ============================================
+/home/z/my-project/skills/quiz-html/examples/demo.html:461: * ============================================ */
+/home/z/my-project/skills/quiz-html/examples/demo.html:1065:/* ============================================
+/home/z/my-project/skills/quiz-html/examples/demo.html:1067: * ============================================ */
+/home/z/my-project/skills/skill-finder-cn/scripts/search.sh:13:echo "================================"
+/home/z/my-project/skills/charts/setup.sh:18:echo "============================================"
+/home/z/my-project/skills/charts/setup.sh:20:echo "============================================"
+/home/z/my-project/skills/charts/setup.sh:223:echo "============================================"
+/home/z/my-project/skills/charts/setup.sh:228:echo "============================================"
+/home/z/my-project/skills/multi-search-engine/references/international-search.md:531:// ==================== 技术开发 ====================
+/home/z/my-project/skills/multi-search-engine/references/international-search.md:545:// ==================== 学术研究 ====================
+/home/z/my-project/skills/multi-search-engine/references/international-search.md:556:// ==================== 新闻时事 ====================
+/home/z/my-project/skills/multi-search-engine/references/international-search.md:567:// ==================== 金融投资 ====================
+/home/z/my-project/skills/multi-search-engine/references/international-search.md:578:// ==================== 知识计算 ====================
+/home/z/my-project/skills/multi-search-engine/references/international-search.md:589:// ==================== 隐私保护搜索 ====================
+/home/z/my-project/skills/multi-search-engine/references/international-search.md:600:// ==================== 高级组合搜索 ====================
+/home/z/my-project/skills/ui-ux-pro-max/scripts/core.py:13:# ============ CONFIGURATION ============
+/home/z/my-project/skills/ui-ux-pro-max/scripts/core.py:95:# ============ BM25 IMPLEMENTATION ============
+/home/z/my-project/skills/ui-ux-pro-max/scripts/core.py:158:# ============ SEARCH FUNCTIONS ============
+/home/z/my-project/skills/ui-ux-pro-max/scripts/design_system.py:28:# ============ CONFIGURATION ============
+/home/z/my-project/skills/ui-ux-pro-max/scripts/design_system.py:40:# ============ DESIGN SYSTEM GENERATOR ============
+/home/z/my-project/skills/ui-ux-pro-max/scripts/design_system.py:243:# ============ OUTPUT FORMATTERS ============
+/home/z/my-project/skills/ui-ux-pro-max/scripts/design_system.py:465:# ============ MAIN ENTRY POINT ============
+/home/z/my-project/skills/ui-ux-pro-max/scripts/design_system.py:494:# ============ PERSISTENCE FUNCTIONS ============
+/home/z/my-project/skills/ui-ux-pro-max/scripts/design_system.py:1059:# ============ CLI SUPPORT ============
+/home/z/my-project/skills/xlsx/templates/base.py:3:===========================
+/home/z/my-project/skills/xlsx/templates/base.py:23:# ============================================================
+/home/z/my-project/skills/xlsx/templates/base.py:25:# ============================================================
+/home/z/my-project/skills/xlsx/templates/base.py:74:# ============================================================
+/home/z/my-project/skills/xlsx/templates/base.py:76:# ============================================================
+/home/z/my-project/skills/xlsx/templates/base.py:114:# ============================================================
+/home/z/my-project/skills/xlsx/templates/base.py:116:# ============================================================
+/home/z/my-project/skills/xlsx/templates/base.py:193:# ============================================================
+/home/z/my-project/skills/xlsx/templates/base.py:195:# ============================================================
+/home/z/my-project/skills/xlsx/templates/base.py:210:# ============================================================
+/home/z/my-project/skills/xlsx/templates/base.py:212:# ============================================================
+/home/z/my-project/skills/xlsx/templates/base.py:225:# ============================================================
+/home/z/my-project/skills/xlsx/templates/base.py:227:# ============================================================
+/home/z/my-project/skills/xlsx/templates/base.py:368:# ============================================================
+/home/z/my-project/skills/xlsx/templates/base.py:370:# ============================================================
+/home/z/my-project/skills/xlsx/templates/base.py:434:# ============================================================
+/home/z/my-project/skills/xlsx/templates/base.py:436:# ============================================================
+/home/z/my-project/skills/xlsx/templates/base.py:545:# ============================================================
+/home/z/my-project/skills/xlsx/templates/base.py:547:# ============================================================
+/home/z/my-project/skills/xlsx/templates/palettes.py:3:=======================================================
+/home/z/my-project/skills/xlsx/templates/palettes.py:29:# ============================================================
+/home/z/my-project/skills/xlsx/templates/palettes.py:31:# ============================================================
+/home/z/my-project/skills/xlsx/templates/palettes.py:75:# ============================================================
+/home/z/my-project/skills/xlsx/templates/palettes.py:77:# ============================================================
+/home/z/my-project/skills/xlsx/templates/palettes.py:156:# ============================================================
+/home/z/my-project/skills/xlsx/templates/palettes.py:158:# ============================================================
+/home/z/my-project/skills/xlsx/templates/palettes.py:295:# ============================================================
+/home/z/my-project/skills/xlsx/templates/palettes.py:297:# ============================================================
+/home/z/my-project/skills/xlsx/templates/palettes.py:329:# ============================================================
+/home/z/my-project/skills/xlsx/templates/palettes.py:331:# ============================================================
+/home/z/my-project/skills/xlsx/templates/palettes.py:446:# ============================================================
+/home/z/my-project/skills/xlsx/templates/palettes.py:448:# ============================================================
+/home/z/my-project/skills/xlsx/engines/vba-templates.md:14:' ============================================================
+/home/z/my-project/skills/xlsx/engines/vba-templates.md:17:' ============================================================
+/home/z/my-project/skills/xlsx/engines/vba-templates.md:119:' ============================================================
+/home/z/my-project/skills/xlsx/engines/vba-templates.md:122:' ============================================================
+/home/z/my-project/skills/xlsx/engines/vba-templates.md:183:' ============================================================
+/home/z/my-project/skills/xlsx/engines/vba-templates.md:186:' ============================================================
+/home/z/my-project/skills/xlsx/engines/vba-templates.md:286:' ============================================================
+/home/z/my-project/skills/xlsx/engines/vba-templates.md:289:' ============================================================
+/home/z/my-project/skills/xlsx/engines/vba-templates.md:376:' ============================================================
+/home/z/my-project/skills/xlsx/engines/vba-templates.md:378:' ============================================================
+/home/z/my-project/skills/xlsx/engines/vba-templates.md:400:' ============================================================
+/home/z/my-project/skills/xlsx/engines/vba-templates.md:403:' ============================================================
+/home/z/my-project/skills/xlsx/scenes/vba.md:52:' ============================================================
+/home/z/my-project/skills/xlsx/scenes/vba.md:57:' ============================================================
+/home/z/my-project/skills/xlsx/setup.sh:18:echo "============================================"
+/home/z/my-project/skills/xlsx/setup.sh:20:echo "============================================"
+/home/z/my-project/skills/xlsx/setup.sh:134:echo "============================================"
+/home/z/my-project/skills/xlsx/setup.sh:136:echo "============================================"
+/home/z/my-project/skills/pptx/ooxml/scripts/validation/redlining.py:133:            error_parts.extend(["Differences:", "============", git_diff])
+/home/z/my-project/skills/docx/scripts/document.py:917:    # ==================== Private: Initialization ====================
+/home/z/my-project/skills/docx/scripts/document.py:962:    # ==================== Private: Setup Methods ====================
+/home/z/my-project/skills/docx/scripts/document.py:1123:    # ==================== Private: XML File Creation ====================
+/home/z/my-project/skills/docx/scripts/document.py:1188:    # ==================== Private: XML Fragments ====================
+/home/z/my-project/skills/docx/scripts/document.py:1215:    # ==================== Private: Metadata Updates ====================
+/home/z/my-project/skills/docx/setup.sh:18:echo "============================================"
+/home/z/my-project/skills/docx/setup.sh:20:echo "============================================"
+/home/z/my-project/skills/docx/setup.sh:173:echo "============================================"
+/home/z/my-project/skills/docx/setup.sh:177:echo "============================================"
+/home/z/my-project/skills/ppt/references/paper-navbar.tex:1:% ========================================================================
+/home/z/my-project/skills/ppt/references/paper-navbar.tex:3:% ========================================================================
+/home/z/my-project/skills/ppt/references/paper-navbar.tex:19:% ========================================================================
+/home/z/my-project/skills/ppt/references/beamer.md:610:% ========================================================================
+/home/z/my-project/skills/ppt/references/progress-navbar.tex:1:% ========================================================================
+/home/z/my-project/skills/ppt/references/progress-navbar.tex:3:% ========================================================================
+/home/z/my-project/skills/ppt/references/progress-navbar.tex:17:% ========================================================================
+/home/z/my-project/skills/ppt/scripts/pdf.py:1852:        print("\n========================\nPDF Information\n========================")
+/home/z/my-project/skills/ppt/scripts/pdf.py:1864:        print(f"\n========================\nLayout Issues ({len(layout)})\n========================")
+/home/z/my-project/skills/ppt/scripts/pdf.py:1869:        print(f"\n========================\nWarnings ({len(warnings)})\n========================")
+/home/z/my-project/skills/ppt/scripts/pdf.py:1874:        print("\n========================\nErrors\n========================")
+/home/z/my-project/skills/ppt/ooxml/scripts/validation/redlining.py:133:            error_parts.extend(["Differences:", "============", git_diff])
+/home/z/my-project/skills/ppt/setup.sh:18:echo "============================================"
+/home/z/my-project/skills/ppt/setup.sh:20:echo "============================================"
+/home/z/my-project/skills/ppt/setup.sh:192:echo "============================================"
+/home/z/my-project/skills/ppt/setup.sh:197:echo "============================================"
+/home/z/my-project/skills/design/design-templates/ppt/html-ppt-zhangzara-8-bit-orbit/pattern.html:1119:    <!-- ========== SLIDE 1: HERO ========== -->
+
+[Showing results with pagination = limit: 250]
