@@ -44,9 +44,9 @@ VS Code Web Replica is a **polyglot microservices application** that replicates 
                               └───┬──────┬──────┬──────┬───┘
                                   │      │      │      │
                      ┌────────────▼┐  ┌──▼───┐  ┌▼────┐ ┌▼──────────┐
-                     │  Core API   │  │Search│  │Sandbox│  Copilot  │
-                     │  Node.js    │  │Rust  │  │  Go   │  Python   │
-                     │  :3001      │  │:3003 │  │ :3002 │  :3004    │
+                     │  Core API   │  │Search│  │Sandbox│ Kilo Code │
+                     │  Node.js    │  │Rust  │  │  Go   │TypeScript │
+                     │  :3001      │  │:3003 │  │ :3002 │  :3005    │
                      └──────┬──────┘  └──────┘  └───────┘ └──────────┘
                             │
                      ┌──────▼──────┐
@@ -192,8 +192,8 @@ document.addEventListener('vscode:command', handler);
                                    │ HTTP/REST
                                    │
                               ┌────▼─────┐
-                              │ Copilot  │
-                              │ (Python) │
+                              │ Kilo Code│
+                              │(TypeScript)│
                               └──────────┘
 ```
 
@@ -203,7 +203,7 @@ document.addEventListener('vscode:command', handler);
 1. Request arrives at Core API (port 3001)
 2. Authentication check (if required)
 3. Route to appropriate handler
-4. If proxy route (search/execute/copilot):
+4. If proxy route (search/execute/kilocode):
    a. Forward request to target service
    b. If target unavailable → use local fallback
    c. Return response
@@ -256,26 +256,35 @@ document.addEventListener('vscode:command', handler);
    e. Return ranked results with context snippets
 ```
 
-### Copilot — Completion Pipeline
+### Kilo Code — AI Agent Pipeline
 
 ```
 1. POST /api/completions with { file_path, language, prefix, suffix }
-2. Extract code context:
-   a. Parse surrounding code (imports, function signatures, class structure)
-   b. Identify language patterns
-   c. Determine completion context (function body, arguments, imports, etc.)
-3. Generate completions:
-   a. Match against language-specific templates
-   b. Fill in context-aware variable names
-   c. Apply common patterns (React hooks, Express routes, etc.)
-4. Score completions:
-   a. Template match quality
-   b. Context relevance
-   c. Language convention adherence
-5. Return ranked completions with confidence scores
-
-Streaming variant follows the same pipeline but yields tokens one at a time
-via Server-Sent Events for real-time display.
+   OR chat/agent request with { message, mode, context }
+2. Integration service (port 3005) bridges request to Kilocode CLI daemon (port 4096):
+   a. Forward completion/chat/agent request to CLI daemon
+   b. CLI daemon leverages configured LLM provider (500+ models supported)
+3. Inline Completions (FIM — Fill-in-the-Middle):
+   a. Extract code context (prefix, suffix, imports, signatures)
+   b. Send FIM request to LLM via Kilocode daemon
+   c. Stream completion tokens back via SSE
+4. Multi-Turn Chat:
+   a. Maintain conversation history with codebase context
+   b. Support Code, Architect, Debug, Ask, and Orchestrator agent modes
+   c. Stream responses with real-time code diffs
+5. Agent Modes:
+   a. Code Mode — Direct code edits with file diffs
+   b. Architect Mode — Planning and design discussions
+   c. Debug Mode — Error analysis and fix suggestions
+   d. Ask Mode — General Q&A without code changes
+   e. Orchestrator Mode — Multi-step task delegation
+6. Codebase Indexing & MCP:
+   a. Index workspace for semantic code search
+   b. Manage MCP (Model Context Protocol) servers for tool integration
+7. Real-Time Events (SSE):
+   a. Stream completion tokens as they arrive
+   b. Emit task progress, file changes, and agent state updates
+   c. Support cancellation of in-progress requests
 ```
 
 ---
@@ -343,17 +352,17 @@ User types in Monaco Editor (800ms debounce)
 useAICompletionStore.requestCompletion(file, position, prefix)
       │
       ├─► Try backend:
-      │     POST /api/core/copilot → Core API
+      │     POST /api/core/kilocode → Core API
       │          │
       │          ▼
-      │     Core API → POST localhost:3004/api/completions → Copilot (Python)
+      │     Core API → POST localhost:3005/api/completions → Kilo Code (TypeScript)
       │          │
       │          ├─► Context extraction
-      │          ├─► Template matching
-      │          ├─► Completion generation with confidence
+      │          ├─► FIM request to Kilocode CLI daemon (port 4096)
+      │          ├─► LLM-powered completion generation
       │          └─► Return completions[]
       │
-      └─► Fallback:
+      └─► Fallback (if Kilo Code unavailable):
             Client-side template matching
             Language-specific snippet insertion
       │
@@ -526,22 +535,22 @@ File Watch Flow:
   Client: useFileSystemStore.updateFile(path, content)
 
 AI Completion Flow:
-  Client: emit('copilot:complete', { ...request })
+  Client: emit('kilocode:complete', { ...request })
       │
       ▼
-  Core API: proxies to Copilot service
+  Core API: proxies to Kilo Code service
       │
       ▼
-  Copilot: streams completions
+  Kilo Code: streams completions via Kilocode CLI daemon
       │
       ▼
-  Core API: emit('copilot:chunk', { text, confidence })
+  Core API: emit('kilocode:chunk', { text, confidence })
       │
       ▼
   Client: useAICompletionStore.appendChunk(text)
       │
       ▼
-  Core API: emit('copilot:done', { completions })
+  Core API: emit('kilocode:done', { completions })
       │
       ▼
   Client: useAICompletionStore.finalizeCompletion()
@@ -731,9 +740,9 @@ Docker containers used for code execution are isolated with:
 │  └────┬─────┘  └────┬─────┘  └──────────┘  └──────────┘   │
 │       │              │                                      │
 │       │        ┌─────▼─────┐                                │
-│       │        │  copilot  │                                │
-│       │        │  :3004    │                                │
-│       │        │  Python   │                                │
+│       │        │ kilocode  │                                │
+│       │        │  :3005    │                                │
+│       │        │TypeScript │                                │
 │       │        └───────────┘                                │
 │       │                                                     │
 │  ┌────▼─────────────────────────────────────────────────┐   │
@@ -753,7 +762,7 @@ Each backend service exposes a `/health` endpoint. The Core API maintains a **se
   "services": {
     "sandbox": { "status": "healthy", "latency": 12, "lastCheck": "2026-06-13T10:00:00Z" },
     "search": { "status": "healthy", "latency": 5, "lastCheck": "2026-06-13T10:00:00Z" },
-    "copilot": { "status": "degraded", "latency": 150, "lastCheck": "2026-06-13T10:00:00Z" }
+    "kilocode": { "status": "degraded", "latency": 150, "lastCheck": "2026-06-13T10:00:00Z" }
   }
 }
 ```
@@ -764,7 +773,7 @@ Each backend service exposes a `/health` endpoint. The Core API maintains a **se
 |---------|-----------|-------------|--------|
 | sandbox | 2 CPUs | 1 GB | Needs resources for Docker containers |
 | search | 2 CPUs | 512 MB | Indexing is CPU-intensive |
-| copilot | 1 CPU | 256 MB | Template engine is lightweight |
+| kilocode | 1 CPU | 256 MB | Node.js bridge to Kilocode CLI daemon |
 | core-api | Default | Default | Primarily I/O bound |
 | frontend | Default | Default | SSR rendering |
 
@@ -779,7 +788,7 @@ Each backend service exposes a `/health` endpoint. The Core API maintains a **se
 | **Core API** | TypeScript/Node.js | Shares types with frontend; excellent async I/O; Socket.IO native support; developer familiarity |
 | **Sandbox** | Go | Docker SDK is first-class; excellent concurrency model; fast startup; low memory footprint; container management expertise in the ecosystem |
 | **Search** | Rust | Zero-cost abstractions for search algorithms; predictable performance; memory-safe trie and inverted index; Axum framework provides excellent async HTTP |
-| **Copilot** | Python | Rich ML/AI ecosystem; FastAPI for rapid API development; Pydantic for type-safe models; easy to swap template engine for real ML models later |
+| **Kilo Code** | TypeScript/Node.js | Open-source agentic coding platform (https://github.com/Kilo-Org/kilocode); supports 500+ LLM models; provides FIM completions, multi-turn chat, agent modes (Code, Architect, Debug, Ask, Orchestrator); TypeScript shares types with frontend for seamless integration |
 
 ### Why Next.js App Router?
 

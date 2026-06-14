@@ -5,6 +5,27 @@ All notable changes to the VS Code Web Replica project will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-06-14
+
+### Added
+- Kilo Code AI agent integration replacing Python copilot service
+  - Inline code completions (FIM) with 500+ LLM model support
+  - Multi-turn chat with session management
+  - Agent modes: Code, Architect, Debug, Ask, Orchestrator
+  - Codebase indexing for context-aware suggestions
+  - MCP (Model Context Protocol) server management
+  - Real-time event streaming (SSE)
+  - Kilo CLI daemon integration (port 4096)
+  - Integration service on port 3005 (TypeScript/Node.js)
+- GitHub Pages deployment workflow
+- Project landing page (docs/index.html)
+
+### Changed
+- Replaced Python copilot service (port 3004) with Kilo Code TypeScript service (port 3005)
+- Updated API endpoints from /api/copilot/* to /api/kilocode/*
+- Updated WebSocket events from copilot:* to kilocode:*
+- Updated documentation across all files
+
 ## [0.2.0] - 2026-06-13
 
 ### Added
@@ -52,7 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Core API (TypeScript/Node.js, Port 3001)**: REST API + Socket.IO WebSocket for real-time communication, service registry with health checks, request proxying to specialized services
 - **Sandbox Service (Go, Port 3002)**: Docker-based code execution with resource limits (memory, CPU, PID), network isolation, SSE streaming output, support for JavaScript, TypeScript, Python, Go, Rust
 - **Search Service (Rust, Port 3003)**: Inverted index for full-text search, trie-based filename autocomplete, file watcher for incremental reindexing, regex and fuzzy matching support
-- **Copilot Service (Python, Port 3004)**: Template-based code completion, context-aware suggestions, streaming completions via SSE, confidence scoring, language-specific templates for TS/JS/Python/Go/Rust
+- **Kilo Code Service (TypeScript/Node.js, Port 3005)**: AI-powered code completions via Kilo Code agent, multi-turn chat with session management, agent modes (Code, Architect, Debug, Ask, Orchestrator), codebase indexing, MCP server management, real-time event streaming (SSE)
 
 #### Infrastructure
 - Docker Compose configuration with 6 services

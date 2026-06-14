@@ -10,7 +10,7 @@ Complete API reference for all backend services and the frontend API gateway.
 - [Core API (Port 3001)](#core-api-port-3001)
 - [Sandbox Service (Port 3002)](#sandbox-service-port-3002)
 - [Search Service (Port 3003)](#search-service-port-3003)
-- [Copilot Service (Port 3004)](#copilot-service-port-3004)
+- [Kilo Code AI Agent (Port 3005)](#kilo-code-ai-agent-port-3005)
 - [Frontend API Gateway](#frontend-api-gateway)
 - [WebSocket Events](#websocket-events)
 - [Error Handling](#error-handling)
@@ -67,7 +67,7 @@ Returns service health and registered backend service statuses.
   "services": {
     "sandbox": { "status": "healthy", "latency": 12, "lastCheck": "2026-06-13T10:00:00Z" },
     "search": { "status": "healthy", "latency": 5, "lastCheck": "2026-06-13T10:00:00Z" },
-    "copilot": { "status": "degraded", "latency": 150, "lastCheck": "2026-06-13T10:00:00Z" }
+    "kilocode": { "status": "healthy", "latency": 25, "lastCheck": "2026-06-13T10:00:00Z" }
   }
 }
 ```
@@ -276,9 +276,9 @@ Execute code in a sandboxed environment. Proxies to Go sandbox service with loca
 
 ### AI Completions
 
-#### POST /api/copilot/completions
+#### POST /api/completions
 
-Get AI code completions. Proxies to Python copilot service with template fallback.
+Get AI code completions. Proxies to Kilo Code AI agent with template fallback.
 
 **Request:**
 ```json
@@ -299,7 +299,7 @@ Get AI code completions. Proxies to Python copilot service with template fallbac
       "text": "{\n  return a + b;\n",
       "display_text": "return a + b",
       "confidence": 0.85,
-      "source": "template"
+      "source": "kilocode"
     }
   ]
 }
@@ -430,7 +430,7 @@ Get health status of all registered backend services.
   "services": {
     "sandbox": { "status": "healthy", "latency": 12, "url": "http://localhost:3002" },
     "search": { "status": "healthy", "latency": 5, "url": "http://localhost:3003" },
-    "copilot": { "status": "unhealthy", "latency": null, "url": "http://localhost:3004" }
+    "kilocode": { "status": "healthy", "latency": 25, "url": "http://localhost:3005" }
   }
 }
 ```
@@ -659,11 +659,11 @@ Health check endpoint.
 
 ---
 
-## Copilot Service (Port 3004)
+## Kilo Code AI Agent (Port 3005)
 
 ### POST /api/completions
 
-Get synchronous code completions.
+Get inline code completions (Fill-In-Middle).
 
 **Request:**
 ```json
@@ -685,18 +685,9 @@ Get synchronous code completions.
       "text": "useState(0)",
       "display_text": "useState(0)",
       "confidence": 0.92,
-      "source": "template",
-      "metadata": {
-        "template_id": "react-useState",
-        "language": "typescript"
-      }
+      "source": "kilocode"
     }
-  ],
-  "context": {
-    "language": "typescript",
-    "framework": "react",
-    "line_type": "variable_declaration"
-  }
+  ]
 }
 ```
 
@@ -709,10 +700,7 @@ Get streaming code completions via Server-Sent Events.
 **Response (SSE):**
 ```
 event: start
-data: {"request_id":"req-123","timestamp":"2026-06-13T10:00:00Z"}
-
-event: completion_start
-data: {"index":0,"confidence":0.92}
+data: {"request_id":"req-123","timestamp":"2026-06-14T10:00:00Z"}
 
 event: chunk
 data: {"text":"useState"}
@@ -720,24 +708,157 @@ data: {"text":"useState"}
 event: chunk
 data: {"text":"(0)"}
 
-event: completion_end
-data: {"index":0,"full_text":"useState(0)","confidence":0.92}
-
 event: done
 data: {"total":1,"request_id":"req-123"}
 ```
 
-### GET /api/completions/health
+### POST /api/chat
 
-Completion engine health check.
+Send a chat message to the AI coding agent.
+
+**Request:**
+```json
+{
+  "message": "How do I fix the type error in add()?",
+  "session_id": "session-abc",
+  "mode": "code",
+  "file_path": "src/math.ts"
+}
+```
+
+**Response (SSE):**
+```
+event: start
+data: {"session_id":"session-abc","mode":"code"}
+
+event: text
+data: {"text":"The issue is that..."}
+
+event: tool_call
+data: {"tool":"read_file","args":{"path":"src/math.ts"}}
+
+event: tool_result
+data: {"result":"...file content..."}
+
+event: text
+data: {"text":"You need to add a return type annotation:"}
+
+event: done
+data: {"cost":0.003,"tokens":{"input":150,"output":200}}
+```
+
+### GET /api/sessions
+
+List chat sessions.
 
 **Response (200):**
 ```json
 {
-  "status": "healthy",
-  "templates_loaded": 42,
-  "languages_supported": 5,
-  "avg_latency_ms": 15
+  "sessions": [
+    {
+      "id": "session-abc",
+      "title": "Fix type error in add()",
+      "mode": "code",
+      "cost": 0.003,
+      "tokens": {"input": 150, "output": 200},
+      "created": 1718352000000,
+      "updated": 1718352100000
+    }
+  ]
+}
+```
+
+### POST /api/sessions
+
+Create a new chat session.
+
+**Request:**
+```json
+{
+  "title": "New coding session",
+  "mode": "code",
+  "directory": "/workspace/my-project"
+}
+```
+
+**Response (201):**
+```json
+{
+  "id": "session-def",
+  "title": "New coding session",
+  "mode": "code",
+  "cost": 0,
+  "tokens": {"input": 0, "output": 0},
+  "created": 1718352200000,
+  "updated": 1718352200000
+}
+```
+
+### GET /api/agents
+
+List available agent modes.
+
+**Response (200):**
+```json
+{
+  "agents": [
+    {"id": "code", "name": "Code", "description": "General coding tasks"},
+    {"id": "architect", "name": "Architect", "description": "System design and architecture"},
+    {"id": "debug", "name": "Debug", "description": "Debugging and troubleshooting"},
+    {"id": "ask", "name": "Ask", "description": "Quick questions and explanations"},
+    {"id": "orchestrator", "name": "Orchestrator", "description": "Multi-step task coordination"}
+  ]
+}
+```
+
+### POST /api/index
+
+Trigger codebase indexing for context-aware suggestions.
+
+**Request:**
+```json
+{
+  "directory": "/workspace/my-project",
+  "force": false
+}
+```
+
+**Response (202):**
+```json
+{
+  "status": "indexing",
+  "files_queued": 42
+}
+```
+
+### GET /api/index/status
+
+Get indexing status.
+
+**Response (200):**
+```json
+{
+  "status": "indexed",
+  "total_files": 42,
+  "indexed_files": 42,
+  "last_updated": "2026-06-14T10:00:00Z"
+}
+```
+
+### GET /api/mcp/servers
+
+List MCP (Model Context Protocol) servers.
+
+**Response (200):**
+```json
+{
+  "servers": [
+    {
+      "name": "filesystem",
+      "status": "running",
+      "tools": ["read_file", "write_file", "list_directory"]
+    }
+  ]
 }
 ```
 
@@ -749,7 +870,8 @@ Service health check.
 ```json
 {
   "status": "healthy",
-  "version": "0.2.0",
+  "kilo_daemon": "running",
+  "version": "0.3.0",
   "uptime": 3600
 }
 ```
@@ -771,7 +893,7 @@ All backend APIs are accessible through Next.js API routes at `/api/core/{servic
 |---------------|----------------|
 | `/api/core/health` | `GET localhost:3001/health` |
 | `/api/core/execute` | `POST localhost:3001/api/execute` |
-| `/api/core/copilot` | `POST localhost:3001/api/copilot/completions` |
+| `/api/core/copilot` | `POST localhost:3005/api/completions` |
 | `/api/core/search` | `POST localhost:3001/api/search` |
 | `/api/core/auth` | `POST localhost:3001/api/auth/login` |
 | `/api/core/terminals` | `GET/POST localhost:3001/api/terminals` |
@@ -783,7 +905,7 @@ All backend APIs are accessible through Next.js API routes at `/api/core/{servic
 | `/api/core/ports` | `GET localhost:3001/api/ports` |
 | `/api/sandbox` | `POST localhost:3002/api/execute` |
 | `/api/search` | `POST localhost:3003/api/search` |
-| `/api/copilot` | `POST localhost:3004/api/completions` |
+| `/api/copilot` | `POST localhost:3005/api/completions` |
 
 ---
 
@@ -800,7 +922,7 @@ All WebSocket communication uses Socket.IO on port 3001.
 | `file:subscribe` | `{ path }` | Subscribe to file change notifications |
 | `file:unsubscribe` | `{ path }` | Unsubscribe from file changes |
 | `lsp:request` | `{ language, method, params }` | Send LSP request |
-| `copilot:complete` | `{ file, position, prefix, suffix }` | Request AI completion |
+| `kilocode:complete` | `{ file, position, prefix, suffix }` | Request AI completion |
 | `session:join` | `{ workspaceId, userId }` | Join collaborative workspace |
 
 ### Server → Client Events
@@ -810,8 +932,8 @@ All WebSocket communication uses Socket.IO on port 3001.
 | `terminal:output` | `{ sessionId, data }` | Terminal output stream |
 | `file:updated` | `{ path, content, changeType }` | File change notification |
 | `lsp:response` | `{ id, result }` | LSP response |
-| `copilot:chunk` | `{ text, confidence }` | Streaming completion chunk |
-| `copilot:done` | `{ completions[] }` | Completion stream finished |
+| `kilocode:chunk` | `{ text, confidence }` | Streaming completion chunk |
+| `kilocode:done` | `{ completions[] }` | Completion stream finished |
 
 ---
 
@@ -852,5 +974,5 @@ When a backend service is unavailable, the system gracefully degrades:
 | Core API | Local in-memory state, simulated responses |
 | Sandbox | Local JS `eval()` for JavaScript, template output for other languages |
 | Search | Client-side in-memory string matching |
-| Copilot | Template-based code completion |
+| Kilo Code | Template-based code completion |
 | WebSocket | Polling-based state updates, real-time features disabled |

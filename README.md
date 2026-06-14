@@ -1,8 +1,8 @@
 # VS Code Web Replica
 
-A full-featured, browser-based VS Code IDE replica built with Next.js 16, featuring a polyglot microservices backend — TypeScript (Core API), Go (Sandbox), Rust (Search), and Python (AI Copilot). Designed to deliver a production-grade, code-server-like development experience directly in the browser with full responsive support for mobile, tablet, and desktop devices.
+A full-featured, browser-based VS Code IDE replica built with Next.js 16, featuring a polyglot microservices backend — TypeScript (Core API), Go (Sandbox), Rust (Search), and Kilo Code (AI Coding Agent). Designed to deliver a production-grade, code-server-like development experience directly in the browser with full responsive support for mobile, tablet, and desktop devices.
 
-![VS Code Web Replica](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript) ![Go](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go) ![Rust](https://img.shields.io/badge/Rust-1.70+-000000?logo=rust) ![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python) ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker) ![License](https://img.shields.io/badge/License-MIT-green)
+![VS Code Web Replica](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript) ![Go](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go) ![Rust](https://img.shields.io/badge/Rust-1.70+-000000?logo=rust) ![Kilo Code](https://img.shields.io/badge/Kilo_Code-AI_Agent-orange?logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xMiAyTDIgN2wxMCA1IDEwLTV6Ii8+PC9zdmc+) ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker) ![License](https://img.shields.io/badge/License-MIT-green)
 
 ---
 
@@ -23,7 +23,7 @@ A full-featured, browser-based VS Code IDE replica built with Next.js 16, featur
   - [Core API (TypeScript/Node.js)](#core-api-typescriptnodejs)
   - [Sandbox Service (Go)](#sandbox-service-go)
   - [Search Service (Rust)](#search-service-rust)
-  - [Copilot Service (Python)](#copilot-service-python)
+  - [Kilo Code AI Agent (TypeScript)](#kilo-code-ai-agent-typescriptnodejs)
 - [API Reference](#api-reference)
 - [Theming](#theming)
 - [Responsive Design](#responsive-design)
@@ -51,10 +51,13 @@ A full-featured, browser-based VS Code IDE replica built with Next.js 16, featur
 - **Supported Languages** — JavaScript, TypeScript, Python, Go, Rust, and more with local fallback execution
 
 ### AI & Intelligence
-- **AI Code Completion (Copilot)** — Inline code suggestions powered by a Python copilot service with template-based fallback
+- **AI-Powered Coding (Kilo Code)** — AI-powered coding agent with inline completions, multi-turn chat, and agent modes (Code, Architect, Debug, Ask, Orchestrator) via Kilo Code integration supporting 500+ LLM models
 - **Streaming Completions** — Server-Sent Events (SSE) for real-time completion streaming
 - **Context-Aware** — Language-specific templates and context extraction for intelligent suggestions
 - **Tab to Accept / Esc to Dismiss** — VS Code-style inline completion interaction
+- **Agent Modes** — Code, Architect, Debug, Ask, and Orchestrator modes for different coding workflows
+- **Codebase Indexing** — Automatic codebase indexing for context-aware suggestions
+- **MCP Server Management** — Model Context Protocol server integration
 
 ### Collaboration & Real-Time
 - **WebSocket Communication** — Socket.IO for real-time terminal I/O, file watching, LSP relay, and AI completion streaming
@@ -91,9 +94,9 @@ A full-featured, browser-based VS Code IDE replica built with Next.js 16, featur
                           └──────────┬──────────┬──────────┬──────────┬─────────┘
                                      │          │          │          │
                           ┌──────────▼──┐ ┌─────▼────┐ ┌───▼────┐ ┌──▼─────────┐
-                          │  Frontend   │ │ Core API │ │Search  │ │  Copilot   │
-                          │  Next.js    │ │  Node.js │ │ Rust   │ │  Python    │
-                          │  Port 3000  │ │ Port 3001│ │Port 3003│ │ Port 3004  │
+                          │  Frontend   │ │ Core API │ │Search  │ │ Kilo Code  │
+                          │  Next.js    │ │  Node.js │ │ Rust   │ │ TypeScript │
+                          │  Port 3000  │ │ Port 3001│ │Port 3003│ │ Port 3005  │
                           └─────────────┘ └────┬─────┘ └────────┘ └────────────┘
                                                │
                                           ┌────▼─────┐
@@ -111,7 +114,7 @@ The application follows a **microservices architecture** with a polyglot backend
 | **Core API** | TypeScript (Node.js) | 3001 | REST API, WebSocket routing, service registry |
 | **Sandbox** | Go | 3002 | Code execution, Docker container management |
 | **Search** | Rust | 3003 | Full-text indexing, filename autocomplete, fuzzy search |
-| **Copilot** | Python | 3004 | AI code completion, template engine, context extraction |
+| **Kilo Code** | TypeScript (Node.js) | 3005 | AI coding agent, inline completions, chat, agent modes, codebase indexing |
 | **Caddy** | Go | 81 | Reverse proxy, TLS, port-based routing |
 
 ---
@@ -140,7 +143,7 @@ The application follows a **microservices architecture** with a polyglot backend
 | Core API | TypeScript | Node.js + Socket.IO | `http`, `socket.io`, `node-fetch` |
 | Sandbox | Go | Gin | `docker/sdk`, `gin-gonic/gin` |
 | Search | Rust | Axum + Tokio | `notify` (file watching), `regex`, `serde` |
-| Copilot | Python | FastAPI + Uvicorn | `pydantic`, `fastapi`, `sse-starlette` |
+| Kilo Code | TypeScript | Node.js + HTTP | `kilocode`, `@kilocode/cli`, SSE streaming |
 
 ### Infrastructure
 | Tool | Purpose |
@@ -158,7 +161,7 @@ The application follows a **microservices architecture** with a polyglot backend
 - **Node.js** >= 18 (or Bun >= 1.0)
 - **Go** >= 1.21 (for Sandbox service)
 - **Rust** >= 1.70 (for Search service)
-- **Python** >= 3.11 (for Copilot service)
+- **Kilocode CLI** (for AI agent) — `npm install -g @kilocode/cli`
 - **Docker** >= 24.0 (for containerized execution & deployment)
 - **Docker Compose** >= 2.20
 
@@ -182,7 +185,7 @@ docker compose up --build
 # Core API:    http://localhost:81?XTransformPort=3001
 # Sandbox:     http://localhost:81?XTransformPort=3002
 # Search:      http://localhost:81?XTransformPort=3003
-# Copilot:     http://localhost:81?XTransformPort=3004
+# Kilo Code:   http://localhost:81?XTransformPort=3005
 ```
 
 Default login credentials: `password: vscode`
@@ -234,12 +237,16 @@ cargo run --release
 # Runs on http://localhost:3003
 ```
 
-**Copilot (Python)**
+**Kilo Code (TypeScript/Node.js)**
 ```bash
-cd backend/copilot
-pip install -r requirements.txt
-python main.py
-# Runs on http://localhost:3004
+# Start Kilo daemon first
+kilo daemon start --hostname 0.0.0.0 --port 4096
+
+# Start the integration service
+cd backend/kilocode
+bun install
+bun run index.ts
+# Runs on http://localhost:3005
 ```
 
 ### Backend Services
@@ -251,7 +258,7 @@ Each backend service operates independently with its own health endpoint and gra
 | Core API | Local in-memory state, simulated responses |
 | Sandbox | Local JavaScript `eval()` for JS, template execution for Python/Go/Rust |
 | Search | Client-side in-memory string matching |
-| Copilot | Template-based code completion (language-specific snippets) |
+| Kilo Code | Template-based code completion (language-specific snippets) |
 
 ---
 
@@ -269,7 +276,7 @@ VS-Code-Web-Replica/
 │   │       ├── core/             # Proxies to Core API (port 3001)
 │   │       │   ├── health/       # Health status
 │   │       │   ├── execute/      # Code execution
-│   │       │   ├── copilot/      # AI completions
+│   │       │   ├── kilocode/     # AI completions
 │   │       │   ├── search/       # File search
 │   │       │   ├── auth/         # Authentication
 │   │       │   ├── terminals/    # Terminal sessions
@@ -280,14 +287,14 @@ VS-Code-Web-Replica/
 │   │       │   ├── extensions/   # Extension marketplace
 │   │       │   └── ports/        # Port forwarding
 │   │       ├── sandbox/          # Direct sandbox access (port 3002)
-│   │       ├── copilot/          # Direct copilot access (port 3004)
+│   │       ├── kilocode/          # Direct Kilo Code access (port 3005)
 │   │       └── search/           # Direct search access (port 3003)
 │   ├── components/               # React components
 │   │   ├── layout/               # Core IDE layout shells
 │   │   ├── sidebar/              # Sidebar panel views
 │   │   ├── terminal/             # Terminal emulator
 │   │   ├── panel/                # Bottom panel sub-panels
-│   │   ├── ai/                   # AI Copilot UI
+│   │   ├── ai/                   # Kilo Code AI UI
 │   │   ├── auth/                 # Authentication screens
 │   │   ├── execution/            # Code execution panel
 │   │   ├── ws/                   # WebSocket status
@@ -322,16 +329,11 @@ VS-Code-Web-Replica/
 │   │   ├── Cargo.toml            # Rust dependencies
 │   │   ├── Dockerfile            # Multi-stage build
 │   │   └── Makefile              # Build automation
-│   └── copilot/                  # Python AI completion engine
-│       ├── main.py               # FastAPI app factory
-│       ├── api/routes.py         # REST + SSE endpoints
-│       ├── completion/           # Completion engine
-│       │   ├── engine.py         # Template + context engine
-│       │   ├── context.py        # Code context extraction
-│       │   ├── models.py         # Pydantic models
-│       │   └── templates.py      # Language-specific templates
-│       ├── requirements.txt      # Python dependencies
-│       └── Dockerfile            # Container build
+│   └── kilocode/                  # Kilo Code AI agent integration
+│       ├── index.ts               # Integration service (port 3005)
+│       ├── start.sh               # Kilo daemon + service startup
+│       ├── package.json           # Node.js dependencies
+│       └── Dockerfile             # Container build
 ├── mini-services/                # Lightweight Node.js services
 │   └── core-api/                 # Core API + WebSocket server
 │       ├── index.ts              # Full API server (3001)
@@ -432,7 +434,7 @@ The central hub for all backend communication. Built with raw Node.js `http` and
 **Responsibilities:**
 - REST API for files, workspaces, authentication, git, extensions, terminals, and ports
 - WebSocket (Socket.IO) for real-time terminal I/O, file watching, LSP relay, and AI completion streaming
-- Service registry with periodic health checks (every 30 seconds) for sandbox, search, and copilot services
+- Service registry with periodic health checks (every 30 seconds) for sandbox, search, and Kilo Code services
 - Request proxying to specialized backend services with graceful fallback
 
 **Key API Endpoints:**
@@ -445,7 +447,7 @@ The central hub for all backend communication. Built with raw Node.js `http` and
 | GET/POST/PUT/DELETE | `/api/files[/:id]` | File operations with WS broadcast |
 | POST | `/api/search` | Search (proxies to Rust service) |
 | POST | `/api/execute` | Code execution (proxies to Go service) |
-| POST | `/api/copilot/completions` | AI completions (proxies to Python service) |
+| POST | `/api/completions` | AI completions (proxies to Kilo Code service) |
 | GET/POST/DELETE | `/api/terminals[/:id]` | Terminal session management |
 | GET | `/api/git/status` | Git status (simulated) |
 | GET | `/api/extensions` | Extension marketplace |
@@ -463,9 +465,9 @@ The central hub for all backend communication. Built with raw Node.js `http` and
 | `file:updated` | Server → Client | File change notification |
 | `lsp:request` | Client → Server | Language server protocol request |
 | `lsp:response` | Server → Client | Language server protocol response |
-| `copilot:complete` | Client → Server | Request AI completion |
-| `copilot:chunk` | Server → Client | Streaming completion chunk |
-| `copilot:done` | Server → Client | Completion stream finished |
+| `kilocode:complete` | Client → Server | Request AI completion |
+| `kilocode:chunk` | Server → Client | Streaming completion chunk |
+| `kilocode:done` | Server → Client | Completion stream finished |
 | `session:join` | Client → Server | Join a collaborative session |
 
 ---
@@ -532,29 +534,37 @@ High-performance file search and indexing engine built with Axum and Tokio.
 
 ---
 
-### Copilot Service (Python)
+### Kilo Code AI Agent (TypeScript/Node.js)
 
-**Port:** 3004 | **Location:** `backend/copilot/`
+**Port:** 3005 | **Location:** `backend/kilocode/`
 
-AI-powered code completion engine built with FastAPI.
+AI-powered coding agent built on [Kilo Code](https://github.com/Kilo-Org/kilocode), an open-source agentic coding platform supporting 500+ LLM models.
 
 **Key Features:**
-- **Synchronous Completions** — Single-request code completion with confidence scoring
-- **Streaming Completions** — SSE-based token-by-token streaming for real-time suggestions
-- **Context-Aware Engine** — Extracts surrounding code context for better suggestions
-- **Language Templates** — Pre-built completion templates for TypeScript, JavaScript, Python, Go, and Rust
-- **Confidence Scoring** — Each completion includes a confidence level (high/medium/low)
+- **Inline Completions (FIM)** — Fill-In-Middle code completions with context-aware suggestions
+- **Multi-Turn Chat** — Conversational coding assistance with session management
+- **Agent Modes** — Code, Architect, Debug, Ask, and Orchestrator modes for different workflows
+- **Codebase Indexing** — Automatic indexing for context-aware suggestions and symbol search
+- **MCP Server Management** — Model Context Protocol server integration for extensibility
+- **Real-Time Events** — SSE streaming for live completion and agent status events
+- **500+ LLM Models** — Supports OpenAI, Anthropic, Google, Mistral, local models, and more
 
 **API Endpoints:**
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/completions` | Synchronous code completion |
-| POST | `/api/completions/stream` | Streaming code completion (SSE) |
-| GET | `/api/completions/health` | Completion engine health |
+| POST | `/api/completions` | Inline code completion (FIM) |
+| POST | `/api/chat` | Multi-turn chat message |
+| GET | `/api/sessions` | List chat sessions |
+| POST | `/api/sessions` | Create new chat session |
+| GET | `/api/agents` | List available agent modes |
+| POST | `/api/index` | Trigger codebase indexing |
+| GET | `/api/index/status` | Indexing status |
+| GET | `/api/mcp/servers` | List MCP servers |
+| POST | `/api/events` | SSE event stream |
 | GET | `/health` | Service health check |
 
-**Request Format:**
+**Request Format (Completions):**
 ```json
 {
   "file_path": "src/index.ts",
@@ -573,7 +583,7 @@ AI-powered code completion engine built with FastAPI.
       "text": "{\n  return a + b;\n",
       "display_text": "return a + b",
       "confidence": 0.85,
-      "source": "template"
+      "source": "kilocode"
     }
   ]
 }
@@ -754,7 +764,7 @@ docker compose down -v
 | core-api | default | default | `GET /health` (30s interval) |
 | sandbox | 2 | 1 GB | `GET /health` (30s interval) |
 | search | 2 | 512 MB | `GET /health` (30s interval) |
-| copilot | 1 | 256 MB | `GET /health` (30s interval) |
+| kilocode | 1 | 256 MB | `GET /health` (30s interval) |
 | frontend | default | default | `GET /` (30s interval) |
 | caddy | default | default | — |
 
@@ -766,7 +776,7 @@ The `Caddyfile` listens on port 81 and routes requests using the `XTransformPort
 - `?XTransformPort=3001` → Core API
 - `?XTransformPort=3002` → Sandbox
 - `?XTransformPort=3003` → Search
-- `?XTransformPort=3004` → Copilot
+- `?XTransformPort=3005` → Kilo Code
 
 ### Environment Variables
 
@@ -779,7 +789,8 @@ The `Caddyfile` listens on port 81 and routes requests using the `XTransformPort
 | `SANDBOX_PIDS_LIMIT` | 100 | Container PID limit |
 | `SANDBOX_TIMEOUT` | 30 | Execution timeout (seconds) |
 | `SEARCH_PORT` | 3003 | Search service port |
-| `COPILOT_PORT` | 3004 | Copilot service port |
+| `KILOCODE_SERVICE_PORT` | 3005 | Kilo Code integration service port |
+| `KILO_PORT` | 4096 | Kilo daemon port |
 | `CORE_API_PORT` | 3001 | Core API port |
 
 ---
@@ -830,4 +841,4 @@ This project is licensed under the MIT License — see the [LICENSE](./LICENSE) 
 
 ---
 
-**Built with Next.js, TypeScript, Go, Rust, Python, and Docker**
+**Built with Next.js, TypeScript, Go, Rust, Kilo Code, and Docker**

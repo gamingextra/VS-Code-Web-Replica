@@ -55,7 +55,7 @@ node --version    # >= 18.x
 bun --version     # >= 1.0 (recommended) or npm/yarn/pnpm
 go version        # >= 1.21 (for sandbox service)
 rustc --version   # >= 1.70 (for search service)
-python --version  # >= 3.11 (for copilot service)
+kilocode --version  # npm install -g @kilocode/cli (for Kilo Code service)
 docker --version  # >= 24.0 (for containerized execution)
 ```
 
@@ -81,7 +81,7 @@ bun install
 
 # Backend services (install dependencies individually)
 cd mini-services/core-api && bun install && cd ../..
-cd backend/copilot && pip install -r requirements.txt && cd ../..
+cd backend/kilocode && npm install && cd ../..
 ```
 
 ### Start Development Environment
@@ -97,7 +97,7 @@ bun dev
 # Core API:     cd mini-services/core-api && bun run index.ts
 # Sandbox:      cd backend/sandbox && go run .
 # Search:       cd backend/search && cargo run --release
-# Copilot:      cd backend/copilot && python main.py
+# Kilo Code:    cd backend/kilocode && npm run dev
 ```
 
 ---
@@ -239,24 +239,25 @@ enum SearchError {
 }
 ```
 
-### Python (Copilot Service)
+### TypeScript (Kilo Code Service)
 
-```python
-# Use Pydantic models for all API schemas
-class CompletionRequest(BaseModel):
-    file_path: str
-    language: str
-    prefix: str
-    suffix: str = ""
-    cursor_position: int = 0
+```typescript
+// Use strongly-typed interfaces for all API schemas
+interface CompletionRequest {
+  filePath: string;
+  language: string;
+  prefix: string;
+  suffix?: string;
+  cursorPosition: number;
+}
 
-# Use async endpoints for streaming
-@router.post("/completions/stream")
-async def stream_completions(request: CompletionRequest):
-    async def generate():
-        # yield SSE events
-        yield f"data: {json.dumps(chunk)}\n\n"
-    return StreamingResponse(generate(), media_type="text/event-stream")
+// Use Express/Hono handlers with SSE streaming
+app.post('/api/kilocode/completions/stream', async (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  // Stream SSE events
+  res.write(`data: ${JSON.stringify(chunk)}\n\n`);
+});
 ```
 
 ---
@@ -581,10 +582,10 @@ curl -X POST http://localhost:3002/api/execute \
   -H "Content-Type: application/json" \
   -d '{"code": "print(\"hello\")", "language": "python"}'
 
-# Test Copilot completions
-curl -X POST http://localhost:3004/api/completions \
+# Test Kilo Code completions
+curl -X POST http://localhost:3005/api/kilocode/completions \
   -H "Content-Type: application/json" \
-  -d '{"file_path": "test.ts", "language": "typescript", "prefix": "function add() "}'
+  -d '{"filePath": "test.ts", "language": "typescript", "prefix": "function add() "}'
 ```
 
 ---

@@ -62,6 +62,25 @@ Code execution is isolated in Docker containers with strict security constraints
 3. **CORS** — Currently configured for development. Restrict origins in production.
 4. **Docker Socket** — The sandbox service requires Docker socket access. Run with minimal privileges.
 5. **Token Storage** — Auth tokens are stored in localStorage. Consider more secure storage for production.
+6. **LLM Prompt Injection** — The Kilo Code service processes user input as LLM prompts. Maliciously crafted inputs could manipulate AI responses. Validate and sanitize all inputs before sending to LLM providers.
+7. **API Key Exposure** — LLM provider API keys must be stored securely. Never commit keys to the repository. Use environment variables or a secrets manager.
+8. **Kilo Daemon Security** — The Kilo CLI daemon (port 4096) uses username/password authentication. Change default credentials in production and restrict network access to localhost only.
+9. **Session Isolation** — Kilo Code chat sessions are user-specific. Ensure session data is properly isolated between users to prevent cross-user data leakage.
+10. **Rate Limiting for AI Requests** — LLM API calls can be expensive and should be rate-limited to prevent abuse. Configure appropriate rate limits on the Kilo Code integration service.
+
+### Kilo Code Service Security
+
+The Kilo Code integration service (port 3005) introduces additional security considerations:
+
+| Security Measure | Description |
+|-----------------|-------------|
+| Kilo Daemon Authentication | Username/password required for daemon communication (port 4096) |
+| LLM API Key Protection | API keys stored in environment variables, never in source code |
+| Prompt Injection Prevention | Input sanitization before sending to LLM providers |
+| Rate Limiting | Request throttling on AI completion and chat endpoints |
+| Session Isolation | Per-user session management with no cross-user data access |
+| SSE Connection Limits | Maximum concurrent SSE connections per client |
+| MCP Server Sandboxing | MCP servers run with restricted permissions |
 
 ---
 
