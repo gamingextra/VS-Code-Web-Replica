@@ -4,13 +4,10 @@ on:
   push:
     branches:
       - feature/code-server-enhancements
-    paths:
-      - 'docs/**'
-      - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -19,39 +16,16 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  enable-pages:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Enable GitHub Pages
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          REPO="${{ github.repository }}"
-          API_URL="https://api.github.com/repos/$REPO/pages"
-          # Check if Pages is already enabled
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token $GH_TOKEN" "$API_URL")
-          if [ "$HTTP_STATUS" = "200" ]; then
-            echo "Pages already enabled."
-          else
-            echo "Enabling GitHub Pages with GitHub Actions source..."
-            curl -s -X POST \
-              -H "Authorization: token $GH_TOKEN" \
-              -H "Accept: application/vnd.github+json" \
-              "$API_URL" \
-              -d '{"build_type":"workflow"}' || true
-            echo "Pages site creation requested."
-            echo "If this still fails, go to: Settings > Pages > Source > select 'GitHub Actions'"
-          fi
-
   build:
     runs-on: ubuntu-latest
-    needs: enable-pages
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
