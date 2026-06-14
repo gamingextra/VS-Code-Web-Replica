@@ -2,12 +2,26 @@
 # Start Kilocode daemon + integration service
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+KILOCODE_VENDOR="$PROJECT_ROOT/vendor/kilocode"
+
 echo "🚀 Starting Kilocode integration..."
+echo "   Project root: $PROJECT_ROOT"
+echo "   Kilocode source: $KILOCODE_VENDOR"
 
 # Check if kilo CLI is installed
 if ! command -v kilo &> /dev/null; then
-    echo "⚠️  Kilocode CLI not found. Installing..."
+    echo "⚠️  Kilocode CLI not found. Installing from npm..."
     npm install -g @kilocode/cli
+fi
+
+# Check for vendor/kilocode submodule
+if [ -d "$KILOCODE_VENDOR/packages" ]; then
+    echo "✅ Kilo Code source available at vendor/kilocode/"
+    echo "   Packages: $(ls "$KILOCODE_VENDOR/packages/" | tr '\n' ' ')"
+else
+    echo "⚠️  vendor/kilocode/ submodule not found. Run: git submodule update --init"
 fi
 
 echo "✅ Kilocode CLI version: $(kilo --version)"

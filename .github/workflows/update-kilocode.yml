@@ -1,0 +1,141 @@
+name: Auto-Update Kilo Code Submodule
+
+on:
+  schedule:
+    # Check for updates every day at 6:00 AM UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      force_update:
+        description: 'Force update even if no new version'
+        required: false
+        default: 'false'
+        type: boolean
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: "kilocode-update"
+  cancel-in-progress: false
+
+jobs:
+  check-and-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: feature/code-server-enhancements
+          submodules: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Check for Kilo Code updates
+        id: check_update
+        run: |
+          # Get current submodule commit
+          CURRENT_COMMIT=$(git submodule status vendor/kilocode | awk '{print $1}' | sed 's/^+//')
+          echo "Current Kilo Code commit: $CURRENT_COMMIT"
+
+          # Fetch latest from upstream
+          cd vendor/kilocode
+          git fetch origin main
+          LATEST_COMMIT=$(git rev-parse origin/main)
+          echo "Latest Kilo Code commit: $LATEST_COMMIT"
+
+          # Get version info
+          LATEST_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "unknown")
+          echo "Latest Kilo Code version: $LATEST_VERSION"
+
+          # Check if there's an update
+          if [ "$CURRENT_COMMIT" != "$LATEST_COMMIT" ]; then
+            echo "has_update=true" >> $GITHUB_OUTPUT
+            echo "new_commit=$LATEST_COMMIT" >> $GITHUB_OUTPUT
+            echo "new_version=$LATEST_VERSION" >> $GITHUB_OUTPUT
+
+            # Get commit log between current and latest
+            COMMIT_LOG=$(git log --oneline $CURRENT_COMMIT..$LATEST_COMMIT | head -20)
+            echo "commit_log<<EOF" >> $GITHUB_OUTPUT
+            echo "$COMMIT_LOG" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "has_update=false" >> $GITHUB_OUTPUT
+            echo "Kilo Code is already up to date at $CURRENT_COMMIT"
+          fi
+
+      - name: Update submodule
+        if: steps.check_update.outputs.has_update == 'true' || inputs.force_update == 'true'
+        run: |
+          cd vendor/kilocode
+          git checkout origin/main
+          cd ../..
+          git add vendor/kilocode
+
+          VERSION="${{ steps.check_update.outputs.new_version }}"
+          COMMIT="${{ steps.check_update.outputs.new_commit }}"
+
+          git commit -m "chore: update Kilo Code submodule to ${VERSION:-latest} (${COMMIT:0:7})
+
+          Updated vendor/kilocode to the latest upstream version.
+
+          New commit: ${COMMIT}
+          Version: ${VERSION:-unknown}
+
+          Changes:
+          ${{ steps.check_update.outputs.commit_log }}"
+
+      - name: Create Pull Request
+        if: steps.check_update.outputs.has_update == 'true' || inputs.force_update == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: chore/update-kilocode-${{ github.run_number }}
+          title: "chore: update Kilo Code to ${{ steps.check_update.outputs.new_version || 'latest' }}"
+          body: |
+            ## Kilo Code Submodule Update
+
+            This PR updates the Kilo Code submodule (`vendor/kilocode`) to the latest version.
+
+            ### Update Details
+            - **New Version**: `${{ steps.check_update.outputs.new_version || 'unknown' }}`
+            - **New Commit**: `${{ steps.check_update.outputs.new_commit }}`
+
+            ### Recent Changes in Kilo Code
+            ```
+            ${{ steps.check_update.outputs.commit_log }}
+            ```
+
+            ### Review Checklist
+            - [ ] Verify the integration bridge still works with the new version
+            - [ ] Check for breaking API changes in the Kilo Code release notes
+            - [ ] Run the test suite to ensure compatibility
+            - [ ] Update `backend/kilocode/` integration code if API changes detected
+
+            ---
+            *This PR was automatically created by the Kilo Code auto-update workflow.*
+          labels: |
+            dependencies
+            kilocode-update
+            automated
+          draft: false
+          delete-branch: true
+          base: feature/code-server-enhancements
+
+      - name: Summary
+        run: |
+          if [ "${{ steps.check_update.outputs.has_update }}" == "true" ]; then
+            echo "## ✅ Kilo Code Update Available" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "- **New Version**: \`${{ steps.check_update.outputs.new_version }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- **New Commit**: \`${{ steps.check_update.outputs.new_commit }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- **PR Created**: A pull request has been created for review" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## ✅ Kilo Code Up to Date" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "The Kilo Code submodule is already at the latest version." >> $GITHUB_STEP_SUMMARY
+          fi
