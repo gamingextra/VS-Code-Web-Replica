@@ -1,0 +1,834 @@
+     1→     1→# VS Code Web Replica
+     2→     2→
+     3→     3→A full-featured, browser-based VS Code IDE replica built with Next.js 16, featuring a polyglot microservices backend — TypeScript (Core API), Go (Sandbox), Rust (Search), and Python (AI Copilot). Designed to deliver a production-grade, code-server-like development experience directly in the browser with full responsive support for mobile, tablet, and desktop devices.
+     4→     4→
+     5→     5→![VS Code Web Replica](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript) ![Go](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go) ![Rust](https://img.shields.io/badge/Rust-1.70+-000000?logo=rust) ![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python) ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker) ![License](https://img.shields.io/badge/License-MIT-green)
+     6→     6→
+     7→     7→---
+     8→     8→
+     9→     9→## Table of Contents
+    10→    10→
+    11→    11→- [Features](#features)
+    12→    12→- [Architecture Overview](#architecture-overview)
+    13→    13→- [Tech Stack](#tech-stack)
+    14→    14→- [Getting Started](#getting-started)
+    15→    15→  - [Prerequisites](#prerequisites)
+    16→    16→  - [Quick Start (Docker)](#quick-start-docker)
+    17→    17→  - [Local Development](#local-development)
+    18→    18→  - [Backend Services](#backend-services)
+    19→    19→- [Project Structure](#project-structure)
+    20→    20→- [Frontend Components](#frontend-components)
+    21→    21→- [State Management](#state-management)
+    22→    22→- [Backend Microservices](#backend-microservices)
+    23→    23→  - [Core API (TypeScript/Node.js)](#core-api-typescriptnodejs)
+    24→    24→  - [Sandbox Service (Go)](#sandbox-service-go)
+    25→    25→  - [Search Service (Rust)](#search-service-rust)
+    26→    26→  - [Copilot Service (Python)](#copilot-service-python)
+    27→    27→- [API Reference](#api-reference)
+    28→    28→- [Theming](#theming)
+    29→    29→- [Responsive Design](#responsive-design)
+    30→    30→- [Keyboard Shortcuts](#keyboard-shortcuts)
+    31→    31→- [Deployment](#deployment)
+    32→    32→- [Configuration](#configuration)
+    33→    33→- [Contributing](#contributing)
+    34→    34→- [License](#license)
+    35→    35→
+    36→    36→---
+    37→    37→
+    38→    38→## Features
+    39→    39→
+    40→    40→### Core IDE Experience
+    41→    41→- **Full VS Code Layout** — Title bar, activity bar, sidebar, editor area, bottom panel, and status bar faithfully recreated
+    42→    42→- **Monaco Code Editor** — Syntax highlighting for 30+ languages, split editor (up to 3 panes), minimap, breadcrumbs, bracket matching
+    43→    43→- **5 Color Themes** — Dark+ (default), Light+, Monokai, Solarized Dark, and GitHub themes with 35+ CSS custom properties each
+    44→    44→- **Virtual File System** — In-memory file tree with CRUD operations, context menus, drag-and-drop, rename, expand/collapse
+    45→    45→- **Command Palette** — `cmdk`-powered palette with command mode (`>` prefix) and quick file open mode (`Ctrl+P`)
+    46→    46→- **Settings Panel** — Full settings UI with categories, search, and persistence to localStorage
+    47→    47→
+    48→    48→### Terminal & Execution
+    49→    49→- **Simulated Terminal** — 40+ Unix commands (ls, cd, git, npm, cat, grep, find, etc.), tab completion, command history, multi-tab support
+    50→    50→- **Code Execution Sandbox** — Docker-based code execution with resource limits, network isolation, and SSE streaming output
+    51→    51→- **Supported Languages** — JavaScript, TypeScript, Python, Go, Rust, and more with local fallback execution
+    52→    52→
+    53→    53→### AI & Intelligence
+    54→    54→- **AI Code Completion (Copilot)** — Inline code suggestions powered by a Python copilot service with template-based fallback
+    55→    55→- **Streaming Completions** — Server-Sent Events (SSE) for real-time completion streaming
+    56→    56→- **Context-Aware** — Language-specific templates and context extraction for intelligent suggestions
+    57→    57→- **Tab to Accept / Esc to Dismiss** — VS Code-style inline completion interaction
+    58→    58→
+    59→    59→### Collaboration & Real-Time
+    60→    60→- **WebSocket Communication** — Socket.IO for real-time terminal I/O, file watching, LSP relay, and AI completion streaming
+    61→    61→- **Service Health Monitoring** — Real-time dashboard showing health status of all 4 backend microservices
+    62→    62→- **Port Forwarding** — Start, stop, and manage forwarded ports directly from the UI
+    63→    63→
+    64→    64→### Developer Tools
+    65→    65→- **Source Control (Git)** — Stage/unstage changes, commit, branch switching, diff indicators (simulated)
+    66→    66→- **Extension Marketplace** — Browse, install, uninstall, and toggle extensions
+    67→    67→- **Full-Text Search** — Rust-powered search with inverted index, trie-based filename autocomplete, regex and fuzzy matching
+    68→    68→- **Notification Center** — Toast and persistent notifications with actionable buttons
+    69→    69→- **Workspace Trust Dialog** — VS Code-style workspace trust flow
+    70→    70→
+    71→    71→### Mobile & Responsive
+    72→    72→- **Touch-Optimized** — 44px minimum touch targets, swipe gestures, long-press actions
+    73→    73→- **Adaptive Layout** — Mobile (overlay sidebar, bottom nav), Tablet (compact sidebar), Desktop (full layout)
+    74→    74→- **Landscape & Foldable** — Special handling for landscape orientation and foldable devices
+    75→    75→- **Virtual Keyboard** — Proper `100dvh`/`100svh` handling for mobile keyboard interactions
+    76→    76→- **Safe Area Insets** — Support for notched devices with `env(safe-area-inset-*)`
+    77→    77→
+    78→    78→### Security & Auth
+    79→    79→- **Authentication** — code-server-style login with password, rate limiting, and local fallback
+    80→    80→- **Sandbox Isolation** — Docker containers with memory limits, CPU quotas, PID limits, and disabled networking
+    81→    81→- **Workspace Trust** — Explicit trust dialog before executing code in untrusted workspaces
+    82→    82→
+    83→    83→---
+    84→    84→
+    85→    85→## Architecture Overview
+    86→    86→
+    87→    87→```
+    88→    88→                          ┌─────────────────────────────────────────────────────┐
+    89→    89→                          │                    Caddy (Port 81)                   │
+    90→    90→                          │              Reverse Proxy + TLS Termination         │
+    91→    91→                          └──────────┬──────────┬──────────┬──────────┬─────────┘
+    92→    92→                                     │          │          │          │
+    93→    93→                          ┌──────────▼──┐ ┌─────▼────┐ ┌───▼────┐ ┌──▼─────────┐
+    94→    94→                          │  Frontend   │ │ Core API │ │Search  │ │  Copilot   │
+    95→    95→                          │  Next.js    │ │  Node.js │ │ Rust   │ │  Python    │
+    96→    96→                          │  Port 3000  │ │ Port 3001│ │Port 3003│ │ Port 3004  │
+    97→    97→                          └─────────────┘ └────┬─────┘ └────────┘ └────────────┘
+    98→    98→                                               │
+    99→    99→                                          ┌────▼─────┐
+   100→   100→                                          │ Sandbox  │
+   101→   101→                                          │   Go     │
+   102→   102→                                          │Port 3002 │
+   103→   103→                                          └──────────┘
+   104→   104→```
+   105→   105→
+   106→   106→The application follows a **microservices architecture** with a polyglot backend:
+   107→   107→
+   108→   108→| Service | Language | Port | Responsibility |
+   109→   109→|---------|----------|------|----------------|
+   110→   110→| **Frontend** | TypeScript (Next.js) | 3000 | UI rendering, client-side state, API gateway |
+   111→   111→| **Core API** | TypeScript (Node.js) | 3001 | REST API, WebSocket routing, service registry |
+   112→   112→| **Sandbox** | Go | 3002 | Code execution, Docker container management |
+   113→   113→| **Search** | Rust | 3003 | Full-text indexing, filename autocomplete, fuzzy search |
+   114→   114→| **Copilot** | Python | 3004 | AI code completion, template engine, context extraction |
+   115→   115→| **Caddy** | Go | 81 | Reverse proxy, TLS, port-based routing |
+   116→   116→
+   117→   117→---
+   118→   118→
+   119→   119→## Tech Stack
+   120→   120→
+   121→   121→### Frontend
+   122→   122→| Technology | Version | Purpose |
+   123→   123→|------------|---------|---------|
+   124→   124→| [Next.js](https://nextjs.org/) | 16 | React framework with App Router |
+   125→   125→| [React](https://react.dev/) | 19 | UI library |
+   126→   126→| [TypeScript](https://www.typescriptlang.org/) | 5 | Type-safe JavaScript |
+   127→   127→| [Zustand](https://zustand.docs.pmnd.rs/) | 5 | Lightweight state management (15 stores) |
+   128→   128→| [Monaco Editor](https://microsoft.github.io/monaco-editor/) | 0.55 | VS Code's editor engine |
+   129→   129→| [Tailwind CSS](https://tailwindcss.com/) | 4 | Utility-first CSS framework |
+   130→   130→| [shadcn/ui](https://ui.shadcn.com/) | latest | Accessible UI components (50+ components) |
+   131→   131→| [cmdk](https://cmdk.paco.me/) | 1.1 | Command palette component |
+   132→   132→| [Lucide React](https://lucide.dev/) | 1.18 | Icon library |
+   133→   133→| [Framer Motion](https://www.framer.com/motion/) | 12 | Animation library |
+   134→   134→| [Socket.IO Client](https://socket.io/) | 4.8 | WebSocket client |
+   135→   135→| [Prisma](https://www.prisma.io/) | 6 | Database ORM (SQLite) |
+   136→   136→
+   137→   137→### Backend
+   138→   138→| Service | Language | Framework | Key Libraries |
+   139→   139→|---------|----------|-----------|---------------|
+   140→   140→| Core API | TypeScript | Node.js + Socket.IO | `http`, `socket.io`, `node-fetch` |
+   141→   141→| Sandbox | Go | Gin | `docker/sdk`, `gin-gonic/gin` |
+   142→   142→| Search | Rust | Axum + Tokio | `notify` (file watching), `regex`, `serde` |
+   143→   143→| Copilot | Python | FastAPI + Uvicorn | `pydantic`, `fastapi`, `sse-starlette` |
+   144→   144→
+   145→   145→### Infrastructure
+   146→   146→| Tool | Purpose |
+   147→   147→|------|---------|
+   148→   148→| [Docker Compose](https://docs.docker.com/compose/) | Multi-container orchestration |
+   149→   149→| [Caddy](https://caddyserver.com/) | Reverse proxy with automatic HTTPS |
+   150→   150→| [SQLite](https://www.sqlite.org/) | Embedded database (via Prisma) |
+   151→   151→
+   152→   152→---
+   153→   153→
+   154→   154→## Getting Started
+   155→   155→
+   156→   156→### Prerequisites
+   157→   157→
+   158→   158→- **Node.js** >= 18 (or Bun >= 1.0)
+   159→   159→- **Go** >= 1.21 (for Sandbox service)
+   160→   160→- **Rust** >= 1.70 (for Search service)
+   161→   161→- **Python** >= 3.11 (for Copilot service)
+   162→   162→- **Docker** >= 24.0 (for containerized execution & deployment)
+   163→   163→- **Docker Compose** >= 2.20
+   164→   164→
+   165→   165→### Quick Start (Docker)
+   166→   166→
+   167→   167→The fastest way to get the entire stack running:
+   168→   168→
+   169→   169→```bash
+   170→   170→# Clone the repository
+   171→   171→git clone https://github.com/gamingextra/VS-Code-Web-Replica.git
+   172→   172→cd VS-Code-Web-Replica
+   173→   173→
+   174→   174→# Switch to the feature branch
+   175→   175→git checkout feature/code-server-enhancements
+   176→   176→
+   177→   177→# Build and start all services
+   178→   178→docker compose up --build
+   179→   179→
+   180→   180→# Access the application
+   181→   181→# Frontend:    http://localhost:81
+   182→   182→# Core API:    http://localhost:81?XTransformPort=3001
+   183→   183→# Sandbox:     http://localhost:81?XTransformPort=3002
+   184→   184→# Search:      http://localhost:81?XTransformPort=3003
+   185→   185→# Copilot:     http://localhost:81?XTransformPort=3004
+   186→   186→```
+   187→   187→
+   188→   188→Default login credentials: `password: vscode`
+   189→   189→
+   190→   190→### Local Development
+   191→   191→
+   192→   192→For active development, run the frontend and backend services separately:
+   193→   193→
+   194→   194→```bash
+   195→   195→# 1. Install frontend dependencies
+   196→   196→bun install
+   197→   197→
+   198→   198→# 2. Start the Next.js development server
+   199→   199→bun dev
+   200→   200→
+   201→   201→# 3. Start all backend services (from project root)
+   202→   202→chmod +x start-backend.sh
+   203→   203→./start-backend.sh
+   204→   204→```
+   205→   205→
+   206→   206→The `start-backend.sh` script automatically:
+   207→   207→- Detects installed runtimes (Go, Rust, Python)
+   208→   208→- Starts each service in the background
+   209→   209→- Performs health checks with retries
+   210→   210→- Provides graceful shutdown on Ctrl+C
+   211→   211→
+   212→   212→#### Starting Backend Services Individually
+   213→   213→
+   214→   214→**Core API (TypeScript/Node.js)**
+   215→   215→```bash
+   216→   216→cd mini-services/core-api
+   217→   217→bun install
+   218→   218→bun run index.ts
+   219→   219→# Runs on http://localhost:3001
+   220→   220→```
+   221→   221→
+   222→   222→**Sandbox (Go)**
+   223→   223→```bash
+   224→   224→cd backend/sandbox
+   225→   225→go run .
+   226→   226→# Runs on http://localhost:3002
+   227→   227→# Requires Docker daemon for container execution
+   228→   228→```
+   229→   229→
+   230→   230→**Search (Rust)**
+   231→   231→```bash
+   232→   232→cd backend/search
+   233→   233→cargo run --release
+   234→   234→# Runs on http://localhost:3003
+   235→   235→```
+   236→   236→
+   237→   237→**Copilot (Python)**
+   238→   238→```bash
+   239→   239→cd backend/copilot
+   240→   240→pip install -r requirements.txt
+   241→   241→python main.py
+   242→   242→# Runs on http://localhost:3004
+   243→   243→```
+   244→   244→
+   245→   245→### Backend Services
+   246→   246→
+   247→   247→Each backend service operates independently with its own health endpoint and graceful degradation. If a backend service is unavailable, the frontend falls back to client-side simulation:
+   248→   248→
+   249→   249→| Service Unavailable | Fallback Behavior |
+   250→   250→|---------------------|-------------------|
+   251→   251→| Core API | Local in-memory state, simulated responses |
+   252→   252→| Sandbox | Local JavaScript `eval()` for JS, template execution for Python/Go/Rust |
+   253→   253→| Search | Client-side in-memory string matching |
+   254→   254→| Copilot | Template-based code completion (language-specific snippets) |
+   255→   255→
+   256→   256→---
+   257→   257→
+   258→   258→## Project Structure
+   259→   259→
+   260→   260→```
+   261→   261→VS-Code-Web-Replica/
+   262→   262→├── src/                          # Frontend source
+   263→   263→│   ├── app/                      # Next.js App Router
+   264→   264→│   │   ├── page.tsx              # Main IDE page composition
+   265→   265→│   │   ├── layout.tsx            # Root layout
+   266→   266→│   │   ├── globals.css           # Theme CSS variables (5 themes)
+   267→   267→│   │   └── api/                  # API route handlers (Next.js proxy)
+   268→   268→│   │       ├── route.ts          # Health check
+   269→   269→│   │       ├── core/             # Proxies to Core API (port 3001)
+   270→   270→│   │       │   ├── health/       # Health status
+   271→   271→│   │       │   ├── execute/      # Code execution
+   272→   272→│   │       │   ├── copilot/      # AI completions
+   273→   273→│   │       │   ├── search/       # File search
+   274→   274→│   │       │   ├── auth/         # Authentication
+   275→   275→│   │       │   ├── terminals/    # Terminal sessions
+   276→   276→│   │       │   ├── services/     # Service registry
+   277→   277→│   │       │   ├── files/        # File CRUD
+   278→   278→│   │       │   ├── workspaces/   # Workspace management
+   279→   279→│   │       │   ├── git/          # Git operations
+   280→   280→│   │       │   ├── extensions/   # Extension marketplace
+   281→   281→│   │       │   └── ports/        # Port forwarding
+   282→   282→│   │       ├── sandbox/          # Direct sandbox access (port 3002)
+   283→   283→│   │       ├── copilot/          # Direct copilot access (port 3004)
+   284→   284→│   │       └── search/           # Direct search access (port 3003)
+   285→   285→│   ├── components/               # React components
+   286→   286→│   │   ├── layout/               # Core IDE layout shells
+   287→   287→│   │   ├── sidebar/              # Sidebar panel views
+   288→   288→│   │   ├── terminal/             # Terminal emulator
+   289→   289→│   │   ├── panel/                # Bottom panel sub-panels
+   290→   290→│   │   ├── ai/                   # AI Copilot UI
+   291→   291→│   │   ├── auth/                 # Authentication screens
+   292→   292→│   │   ├── execution/            # Code execution panel
+   293→   293→│   │   ├── ws/                   # WebSocket status
+   294→   294→│   │   ├── notifications/        # Notification center
+   295→   295→│   │   ├── dialog/               # Modal dialogs
+   296→   296→│   │   ├── ui/                   # shadcn/ui components (50+)
+   297→   297→│   │   ├── CommandPalette.tsx     # Command palette
+   298→   298→│   │   └── icons.tsx             # Custom SVG icons
+   299→   299→│   ├── store/                    # Zustand state stores (15)
+   300→   300→│   ├── hooks/                    # Custom React hooks
+   301→   301→│   ├── lib/                      # Utility libraries
+   302→   302→│   ├── data/                     # Demo data & mock extensions
+   303→   303→│   └── utils/                    # Helper functions
+   304→   304→├── backend/                      # Backend microservices
+   305→   305→│   ├── sandbox/                  # Go code execution sandbox
+   306→   306→│   │   ├── main.go               # Entry point
+   307→   307→│   │   ├── api/handler.go        # HTTP handlers
+   308→   308→│   │   ├── runner/               # Docker container runner
+   309→   309→│   │   │   ├── runner.go         # Container lifecycle
+   310→   310→│   │   │   ├── sandbox.go        # Security config
+   311→   311→│   │   │   └── languages.go      # Language definitions
+   312→   312→│   │   ├── go.mod                # Go module
+   313→   313→│   │   ├── Dockerfile            # Multi-stage build
+   314→   314→│   │   └── Makefile              # Build automation
+   315→   315→│   ├── search/                   # Rust file search & indexing
+   316→   316→│   │   ├── src/
+   317→   317→│   │   │   ├── main.rs           # Axum server setup
+   318→   318→│   │   │   ├── api.rs            # HTTP handlers
+   319→   319→│   │   │   ├── indexer.rs        # Inverted index builder
+   320→   320→│   │   │   ├── searcher.rs       # Search engine (regex + fuzzy)
+   321→   321→│   │   │   └── trie.rs           # Trie data structure
+   322→   322→│   │   ├── Cargo.toml            # Rust dependencies
+   323→   323→│   │   ├── Dockerfile            # Multi-stage build
+   324→   324→│   │   └── Makefile              # Build automation
+   325→   325→│   └── copilot/                  # Python AI completion engine
+   326→   326→│       ├── main.py               # FastAPI app factory
+   327→   327→│       ├── api/routes.py         # REST + SSE endpoints
+   328→   328→│       ├── completion/           # Completion engine
+   329→   329→│       │   ├── engine.py         # Template + context engine
+   330→   330→│       │   ├── context.py        # Code context extraction
+   331→   331→│       │   ├── models.py         # Pydantic models
+   332→   332→│       │   └── templates.py      # Language-specific templates
+   333→   333→│       ├── requirements.txt      # Python dependencies
+   334→   334→│       └── Dockerfile            # Container build
+   335→   335→├── mini-services/                # Lightweight Node.js services
+   336→   336→│   └── core-api/                 # Core API + WebSocket server
+   337→   337→│       ├── index.ts              # Full API server (3001)
+   338→   338→│       ├── package.json          # Dependencies
+   339→   339→│       └── Dockerfile            # Container build
+   340→   340→├── examples/                     # Example code
+   341→   341→│   └── websocket/                # Socket.IO chat example
+   342→   342→├── prisma/                       # Database schema
+   343→   343→│   └── schema.prisma             # User & Post models
+   344→   344→├── docker-compose.yml            # Multi-container orchestration
+   345→   345→├── Caddyfile                     # Reverse proxy configuration
+   346→   346→├── start-backend.sh              # Local dev backend launcher
+   347→   347→├── package.json                  # Frontend dependencies
+   348→   348→├── next.config.ts                # Next.js configuration
+   349→   349→├── tailwind.config.ts            # Tailwind + shadcn/ui config
+   350→   350→├── tsconfig.json                 # TypeScript configuration
+   351→   351→├── eslint.config.mjs             # ESLint configuration
+   352→   352→└── ARCHITECTURE.md               # Architecture documentation
+   353→   353→```
+   354→   354→
+   355→   355→---
+   356→   356→
+   357→   357→## Frontend Components
+   358→   358→
+   359→   359→### Layout Components (`src/components/layout/`)
+   360→   360→
+   361→   361→| Component | Description |
+   362→   362→|-----------|-------------|
+   363→   363→| `TitleBar.tsx` | Top menu bar with File/Edit/View/Go/Run/Terminal/Help menus, mobile hamburger toggle |
+   364→   364→| `ActivityBar.tsx` | Left icon strip — Explorer, Search, SCM, Run & Debug, Extensions + bottom accounts/settings icons |
+   365→   365→| `Sidebar.tsx` | Resizable sidebar panel with swipe-to-close on mobile, overlay mode on small screens |
+   366→   366→| `TabBar.tsx` | Editor tabs with horizontal scrolling, overflow menu, long-press-to-close on mobile |
+   367→   367→| `EditorArea.tsx` | Monaco editor wrapper with split panes (up to 3), breadcrumbs, theme synchronization |
+   368→   368→| `BottomPanel.tsx` | Resizable bottom panel hosting Terminal, Problems, Output, Debug Console, and Ports tabs |
+   369→   369→| `StatusBar.tsx` | Bottom status bar with branch picker, language, cursor position, WebSocket status, notifications |
+   370→   370→| `SettingsPanel.tsx` | Full settings UI with two-column desktop layout and slide-in mobile drawer |
+   371→   371→| `WelcomePage.tsx` | VS Code welcome tab with Start actions, Recent files, and Walkthroughs |
+   372→   372→
+   373→   373→### Sidebar Views (`src/components/sidebar/`)
+   374→   374→
+   375→   375→| Component | Description |
+   376→   376→|-----------|-------------|
+   377→   377→| `ExplorerView.tsx` | File tree explorer with create/rename/delete operations and context menus |
+   378→   378→| `SearchView.tsx` | Full-text search with match highlighting and replace support |
+   379→   379→| `SCMView.tsx` | Source control management — stage/unstage/commit/discard changes |
+   380→   380→| `RunDebugView.tsx` | Run & Debug configurations panel |
+   381→   381→| `ExtensionsView.tsx` | Extension marketplace with install/uninstall/toggle functionality |
+   382→   382→
+   383→   383→### Specialized Components
+   384→   384→
+   385→   385→| Component | Path | Description |
+   386→   386→|-----------|------|-------------|
+   387→   387→| `CommandPalette.tsx` | `src/components/` | `cmdk`-based palette with command mode (`>`) and file mode |
+   388→   388→| `LoginScreen.tsx` | `src/components/auth/` | code-server-style login with rate limiting |
+   389→   389→| `AICompletionIndicator.tsx` | `src/components/ai/` | Floating AI suggestion card with status toggle |
+   390→   390→| `CodeExecutionPanel.tsx` | `src/components/execution/` | Sandbox execution panel with run button and results |
+   391→   391→| `NotificationCenter.tsx` | `src/components/notifications/` | Notification panel with info/warning/error types |
+   392→   392→| `WebSocketStatusIndicator.tsx` | `src/components/ws/` | Real-time latency indicator with detail popover |
+   393→   393→| `ServiceHealthPanel.tsx` | `src/components/ws/` | Backend services health dashboard |
+   394→   394→| `WorkspaceTrustDialog.tsx` | `src/components/dialog/` | VS Code workspace trust dialog |
+   395→   395→
+   396→   396→---
+   397→   397→
+   398→   398→## State Management
+   399→   399→
+   400→   400→The application uses **15 Zustand stores** for fine-grained state management:
+   401→   401→
+   402→   402→| Store | File | Key State | Purpose |
+   403→   403→|-------|------|-----------|---------|
+   404→   404→| `useEditorStore` | `editorStore.ts` | `tabs`, `splits`, `activeTab` | Editor tabs, split panes, dirty tracking |
+   405→   405→| `useFileSystemStore` | `fileSystemStore.ts` | `root: FileNode[]` | Virtual file system with CRUD |
+   406→   406→| `useSidebarStore` | `sidebarStore.ts` | `activeView`, `isVisible`, `width` | Sidebar view selection and sizing |
+   407→   407→| `useTerminalStore` | `terminalStore.ts` | `terminals[]`, `output[]` | Terminal sessions and output |
+   408→   408→| `useSettingsStore` | `settingsStore.ts` | 15+ settings | Editor preferences (persisted to localStorage) |
+   409→   409→| `useThemeStore` | `themeStore.ts` | `theme` | Theme selection (5 themes) |
+   410→   410→| `useAuthStore` | `authStore.ts` | `isAuthenticated`, `token` | Authentication state |
+   411→   411→| `useGitStore` | `gitStore.ts` | `branch`, `changes[]`, `staged[]` | Source control state |
+   412→   412→| `useExtensionStore` | `extensionStore.ts` | `extensions[]` | Extension marketplace |
+   413→   413→| `useStatusBarStore` | `statusBarStore.ts` | `branch`, `language`, `line/col` | Status bar information |
+   414→   414→| `useNotificationStore` | `notificationStore.ts` | `notifications[]` | Notification center |
+   415→   415→| `useAICompletionStore` | `aiCompletionStore.ts` | `currentCompletion`, `isProcessing` | AI inline completions |
+   416→   416→| `useCodeExecutionStore` | `codeExecutionStore.ts` | `isExecuting`, `results[]` | Sandbox execution |
+   417→   417→| `useWebSocketStore` | `websocketStore.ts` | `status`, `latency` | WebSocket connection |
+   418→   418→| `usePortStore` | `portStore.ts` | `ports[]` | Port forwarding |
+   419→   419→
+   420→   420→All stores follow the Zustand slice pattern and are exported from `src/store/index.ts`.
+   421→   421→
+   422→   422→---
+   423→   423→
+   424→   424→## Backend Microservices
+   425→   425→
+   426→   426→### Core API (TypeScript/Node.js)
+   427→   427→
+   428→   428→**Port:** 3001 | **Location:** `mini-services/core-api/`
+   429→   429→
+   430→   430→The central hub for all backend communication. Built with raw Node.js `http` and Socket.IO.
+   431→   431→
+   432→   432→**Responsibilities:**
+   433→   433→- REST API for files, workspaces, authentication, git, extensions, terminals, and ports
+   434→   434→- WebSocket (Socket.IO) for real-time terminal I/O, file watching, LSP relay, and AI completion streaming
+   435→   435→- Service registry with periodic health checks (every 30 seconds) for sandbox, search, and copilot services
+   436→   436→- Request proxying to specialized backend services with graceful fallback
+   437→   437→
+   438→   438→**Key API Endpoints:**
+   439→   439→
+   440→   440→| Method | Endpoint | Description |
+   441→   441→|--------|----------|-------------|
+   442→   442→| GET | `/health` | Health check + service registry status |
+   443→   443→| POST | `/api/auth/login` | Authenticate with password |
+   444→   444→| GET/POST | `/api/workspaces` | Workspace CRUD |
+   445→   445→| GET/POST/PUT/DELETE | `/api/files[/:id]` | File operations with WS broadcast |
+   446→   446→| POST | `/api/search` | Search (proxies to Rust service) |
+   447→   447→| POST | `/api/execute` | Code execution (proxies to Go service) |
+   448→   448→| POST | `/api/copilot/completions` | AI completions (proxies to Python service) |
+   449→   449→| GET/POST/DELETE | `/api/terminals[/:id]` | Terminal session management |
+   450→   450→| GET | `/api/git/status` | Git status (simulated) |
+   451→   451→| GET | `/api/extensions` | Extension marketplace |
+   452→   452→| GET | `/api/services` | Service health registry |
+   453→   453→| GET | `/api/ports` | Port forwarding information |
+   454→   454→
+   455→   455→**WebSocket Events:**
+   456→   456→
+   457→   457→| Event | Direction | Description |
+   458→   458→|-------|-----------|-------------|
+   459→   459→| `terminal:input` | Client → Server | Terminal keyboard input |
+   460→   460→| `terminal:output` | Server → Client | Terminal output stream |
+   461→   461→| `terminal:resize` | Client → Server | Terminal dimension changes |
+   462→   462→| `file:subscribe` | Client → Server | Subscribe to file change notifications |
+   463→   463→| `file:updated` | Server → Client | File change notification |
+   464→   464→| `lsp:request` | Client → Server | Language server protocol request |
+   465→   465→| `lsp:response` | Server → Client | Language server protocol response |
+   466→   466→| `copilot:complete` | Client → Server | Request AI completion |
+   467→   467→| `copilot:chunk` | Server → Client | Streaming completion chunk |
+   468→   468→| `copilot:done` | Server → Client | Completion stream finished |
+   469→   469→| `session:join` | Client → Server | Join a collaborative session |
+   470→   470→
+   471→   471→---
+   472→   472→
+   473→   473→### Sandbox Service (Go)
+   474→   474→
+   475→   475→**Port:** 3002 | **Location:** `backend/sandbox/`
+   476→   476→
+   477→   477→Docker-based code execution sandbox with strict resource limits and network isolation.
+   478→   478→
+   479→   479→**Key Features:**
+   480→   480→- Container-based execution with configurable memory, CPU, and PID limits
+   481→   481→- Network isolation (containers have no network access)
+   482→   482→- SSE (Server-Sent Events) streaming for real-time execution output
+   483→   483→- Support for JavaScript, TypeScript, Python, Go, Rust, and more
+   484→   484→- Graceful shutdown with 5-second timeout
+   485→   485→
+   486→   486→**Default Sandbox Constraints:**
+   487→   487→
+   488→   488→| Resource | Limit |
+   489→   489→|----------|-------|
+   490→   490→| Memory | 512 MB |
+   491→   491→| CPU Quota | 100,000 (1 CPU) |
+   492→   492→| PIDs | 100 |
+   493→   493→| Network | Disabled |
+   494→   494→| Timeout | 30 seconds |
+   495→   495→
+   496→   496→**Environment Variables:**
+   497→   497→
+   498→   498→| Variable | Default | Description |
+   499→   499→|----------|---------|-------------|
+   500→   500→| `SANDBOX_MEMORY_MB` | 512 | Container memory limit |
+   501→   501→| `SANDBOX_CPU_QUOTA` | 100000 | CPU quota in microseconds |
+   502→   502→| `SANDBOX_PIDS_LIMIT` | 100 | Maximum process IDs |
+   503→   503→| `SANDBOX_TIMEOUT` | 30 | Execution timeout in seconds |
+   504→   504→| `SANDBOX_PORT` | 3002 | Server port |
+   505→   505→
+   506→   506→---
+   507→   507→
+   508→   508→### Search Service (Rust)
+   509→   509→
+   510→   510→**Port:** 3003 | **Location:** `backend/search/`
+   511→   511→
+   512→   512→High-performance file search and indexing engine built with Axum and Tokio.
+   513→   513→
+   514→   514→**Key Features:**
+   515→   515→- **Inverted Index** — Full-text content search with term frequency ranking
+   516→   516→- **Trie Data Structure** — O(k) filename autocomplete where k is the query length
+   517→   517→- **File Watching** — Incremental reindexing via the `notify` crate (debounced 500ms)
+   518→   518→- **Regex Search** — Full regular expression support for advanced queries
+   519→   519→- **Fuzzy Matching** — Approximate string matching for typo-tolerant search
+   520→   520→- **Structured Logging** — JSON-formatted logs with the `tracing` crate
+   521→   521→
+   522→   522→**API Endpoints:**
+   523→   523→
+   524→   524→| Method | Endpoint | Description |
+   525→   525→|--------|----------|-------------|
+   526→   526→| POST | `/api/search` | Full-text content search |
+   527→   527→| POST | `/api/search/filenames` | Filename search with trie autocomplete |
+   528→   528→| GET | `/api/search/suggest` | Search suggestions |
+   529→   529→| POST | `/api/index` | Trigger manual reindex |
+   530→   530→| GET | `/api/index/stats` | Index statistics |
+   531→   531→| GET | `/health` | Health check |
+   532→   532→
+   533→   533→---
+   534→   534→
+   535→   535→### Copilot Service (Python)
+   536→   536→
+   537→   537→**Port:** 3004 | **Location:** `backend/copilot/`
+   538→   538→
+   539→   539→AI-powered code completion engine built with FastAPI.
+   540→   540→
+   541→   541→**Key Features:**
+   542→   542→- **Synchronous Completions** — Single-request code completion with confidence scoring
+   543→   543→- **Streaming Completions** — SSE-based token-by-token streaming for real-time suggestions
+   544→   544→- **Context-Aware Engine** — Extracts surrounding code context for better suggestions
+   545→   545→- **Language Templates** — Pre-built completion templates for TypeScript, JavaScript, Python, Go, and Rust
+   546→   546→- **Confidence Scoring** — Each completion includes a confidence level (high/medium/low)
+   547→   547→
+   548→   548→**API Endpoints:**
+   549→   549→
+   550→   550→| Method | Endpoint | Description |
+   551→   551→|--------|----------|-------------|
+   552→   552→| POST | `/api/completions` | Synchronous code completion |
+   553→   553→| POST | `/api/completions/stream` | Streaming code completion (SSE) |
+   554→   554→| GET | `/api/completions/health` | Completion engine health |
+   555→   555→| GET | `/health` | Service health check |
+   556→   556→
+   557→   557→**Request Format:**
+   558→   558→```json
+   559→   559→{
+   560→   560→  "file_path": "src/index.ts",
+   561→   561→  "language": "typescript",
+   562→   562→  "prefix": "function add(a: number, b: number) ",
+   563→   563→  "suffix": "\n}",
+   564→   564→  "cursor_position": 35
+   565→   565→}
+   566→   566→```
+   567→   567→
+   568→   568→**Response Format:**
+   569→   569→```json
+   570→   570→{
+   571→   571→  "completions": [
+   572→   572→    {
+   573→   573→      "text": "{\n  return a + b;\n",
+   574→   574→      "display_text": "return a + b",
+   575→   575→      "confidence": 0.85,
+   576→   576→      "source": "template"
+   577→   577→    }
+   578→   578→  ]
+   579→   579→}
+   580→   580→```
+   581→   581→
+   582→   582→---
+   583→   583→
+   584→   584→## API Reference
+   585→   585→
+   586→   586→### Client-Side API Gateway
+   587→   587→
+   588→   588→The `src/lib/api-client.ts` module provides typed functions for all backend endpoints. It implements a **cascading fallback** strategy:
+   589→   589→
+   590→   590→```
+   591→   591→1. Try direct service call (e.g., localhost:3003/api/search)
+   592→   592→2. If failed → Try Core API proxy (e.g., localhost:3001/api/search)
+   593→   593→3. If failed → Use local client-side simulation
+   594→   594→```
+   595→   595→
+   596→   596→The `XTransformPort` query parameter enables Caddy-based port routing in production.
+   597→   597→
+   598→   598→**Available Functions:**
+   599→   599→
+   600→   600→```typescript
+   601→   601→// Health & Services
+   602→   602→apiClient.healthCheck()
+   603→   603→apiClient.getServices()
+   604→   604→
+   605→   605→// Workspaces
+   606→   606→apiClient.getWorkspaces()
+   607→   607→apiClient.createWorkspace(data)
+   608→   608→
+   609→   609→// Files
+   610→   610→apiClient.getFiles(workspaceId)
+   611→   611→apiClient.createFile(data)
+   612→   612→apiClient.updateFile(id, data)
+   613→   613→apiClient.deleteFile(id)
+   614→   614→
+   615→   615→// Search
+   616→   616→apiClient.searchFiles(query, options?)
+   617→   617→
+   618→   618→// Execution
+   619→   619→apiClient.executeCode(code, language, options?)
+   620→   620→
+   621→   621→// AI Completions
+   622→   622→apiClient.getCompletions(request)
+   623→   623→
+   624→   624→// Authentication
+   625→   625→apiClient.login(username, password)
+   626→   626→
+   627→   627→// Git
+   628→   628→apiClient.getGitStatus()
+   629→   629→
+   630→   630→// Extensions
+   631→   631→apiClient.getExtensions()
+   632→   632→
+   633→   633→// Ports
+   634→   634→apiClient.getPorts()
+   635→   635→```
+   636→   636→
+   637→   637→---
+   638→   638→
+   639→   639→## Theming
+   640→   640→
+   641→   641→The application supports 5 themes, each defined by 35+ CSS custom properties in `globals.css`:
+   642→   642→
+   643→   643→| Theme | CSS Class | Type | Description |
+   644→   644→|-------|-----------|------|-------------|
+   645→   645→| **Dark+** | *(default)* | Dark | VS Code's default dark theme |
+   646→   646→| **Light+** | `.vs-light` | Light | VS Code's default light theme |
+   647→   647→| **Monokai** | `.vs-monokai` | Dark | Classic Monokai color scheme |
+   648→   648→| **Solarized Dark** | `.vs-solarized-dark` | Dark | Solarized dark palette |
+   649→   649→| **GitHub** | `.vs-github` | Light | GitHub's light color scheme |
+   650→   650→
+   651→   651→**CSS Variable Categories:**
+   652→   652→- Background layers (main, sidebar, editor, panel, input, dropdown)
+   653→   653→- Foreground colors (primary, secondary, muted, accent)
+   654→   654→- Border colors (default, focus, active)
+   655→   655→- Git status colors (added, modified, deleted, untracked, ignored, conflict)
+   656→   656→- UI element colors (scrollbar, badge, progress, selection, find match)
+   657→   657→- Syntax highlighting (via Monaco token-level rules)
+   658→   658→
+   659→   659→**Customizing Themes:**
+   660→   660→
+   661→   661→Add a new theme class to `globals.css`:
+   662→   662→```css
+   663→   663→.my-custom-theme {
+   664→   664→  --vs-bg-main: #1a1b26;
+   665→   665→  --vs-bg-sidebar: #16161e;
+   666→   666→  --vs-fg-primary: #a9b1d6;
+   667→   667→  --vs-accent: #7aa2f7;
+   668→   668→  /* ... define all 35+ variables */
+   669→   669→}
+   670→   670→```
+   671→   671→
+   672→   672→Then register it in `src/store/themeStore.ts`.
+   673→   673→
+   674→   674→---
+   675→   675→
+   676→   676→## Responsive Design
+   677→   677→
+   678→   678→The application is fully responsive with device-specific optimizations:
+   679→   679→
+   680→   680→### Breakpoints
+   681→   681→
+   682→   682→| Breakpoint | Width | Layout Mode |
+   683→   683→|------------|-------|-------------|
+   684→   684→| Mobile S | 320–374px | Overlay sidebar, bottom nav, no line numbers |
+   685→   685→| Mobile M | 375–413px | Overlay sidebar, bottom nav |
+   686→   686→| Mobile L | 414–767px | Overlay sidebar, bottom nav |
+   687→   687→| Tablet | 768–1023px | Compact sidebar (icon-only, 48px) |
+   688→   688→| Desktop | 1024px+ | Full layout |
+   689→   689→
+   690→   690→### Mobile Adaptations
+   691→   691→
+   692→   692→- **Overlay Sidebar** — Sidebar floats over editor with backdrop, swipe from left edge to open
+   693→   693→- **Bottom Navigation** — Replaces Activity Bar with a touch-friendly bottom tab bar
+   694→   694→- **Touch Targets** — Minimum 44×44px (iOS HIG compliant) with 8px grid spacing
+   695→   695→- **Swipe Gestures** — Left edge → open sidebar, right swipe on sidebar → close
+   696→   696→- **Tab Overflow** — Horizontal scroll with "..." overflow indicator
+   697→   697→- **Long Press** — Long-press on tabs to close them
+   698→   698→- **Thinner Scrollbars** — 6px width on mobile vs 10px on desktop
+   699→   699→- **Virtual Keyboard** — `100dvh`/`100svh` handling for proper layout with mobile keyboards
+   700→   700→- **Safe Areas** — `env(safe-area-inset-*)` for notched devices
+   701→   701→- **Landscape Mode** — Auto-collapses bottom panel for more editor space
+   702→   702→- **Foldable Devices** — CSS grid layout adapts to span/fold states
+   703→   703→
+   704→   704→---
+   705→   705→
+   706→   706→## Keyboard Shortcuts
+   707→   707→
+   708→   708→| Shortcut | Action |
+   709→   709→|----------|--------|
+   710→   710→| `Ctrl+Shift+P` | Open Command Palette (command mode) |
+   711→   711→| `Ctrl+P` | Quick Open File |
+   712→   712→| `Ctrl+B` | Toggle Sidebar |
+   713→   713→| `Ctrl+J` | Toggle Bottom Panel |
+   714→   714→| `Ctrl+`` ` | Toggle Terminal |
+   715→   715→| `Ctrl+\` | Split Editor |
+   716→   716→| `Ctrl+N` | New File |
+   717→   717→| `Ctrl+W` | Close Tab |
+   718→   718→| `Ctrl+S` | Save File |
+   719→   719→| `Ctrl+Shift+E` | Show Explorer |
+   720→   720→| `Ctrl+Shift+F` | Show Search |
+   721→   721→| `Ctrl+Shift+G` | Show Source Control |
+   722→   722→| `Ctrl+Shift+D` | Show Run & Debug |
+   723→   723→| `Ctrl+Shift+X` | Show Extensions |
+   724→   724→| `Alt+Z` | Toggle Word Wrap |
+   725→   725→| `Tab` | Accept AI Completion |
+   726→   726→| `Esc` | Dismiss AI Completion |
+   727→   727→| `Ctrl+Shift+N` | Open New Window |
+   728→   728→| `F11` | Toggle Zen Mode |
+   729→   729→
+   730→   730→---
+   731→   731→
+   732→   732→## Deployment
+   733→   733→
+   734→   734→### Docker Compose (Recommended)
+   735→   735→
+   736→   736→```bash
+   737→   737→# Build and start all services
+   738→   738→docker compose up --build -d
+   739→   739→
+   740→   740→# View logs
+   741→   741→docker compose logs -f
+   742→   742→
+   743→   743→# Stop all services
+   744→   744→docker compose down
+   745→   745→
+   746→   746→# Stop and remove volumes
+   747→   747→docker compose down -v
+   748→   748→```
+   749→   749→
+   750→   750→**Service Resource Allocation:**
+   751→   751→
+   752→   752→| Service | CPUs | Memory | Health Check |
+   753→   753→|---------|------|--------|-------------|
+   754→   754→| core-api | default | default | `GET /health` (30s interval) |
+   755→   755→| sandbox | 2 | 1 GB | `GET /health` (30s interval) |
+   756→   756→| search | 2 | 512 MB | `GET /health` (30s interval) |
+   757→   757→| copilot | 1 | 256 MB | `GET /health` (30s interval) |
+   758→   758→| frontend | default | default | `GET /` (30s interval) |
+   759→   759→| caddy | default | default | — |
+   760→   760→
+   761→   761→### Caddy Configuration
+   762→   762→
+   763→   763→The `Caddyfile` listens on port 81 and routes requests using the `XTransformPort` query parameter:
+   764→   764→
+   765→   765→- No parameter → Frontend (port 3000)
+   766→   766→- `?XTransformPort=3001` → Core API
+   767→   767→- `?XTransformPort=3002` → Sandbox
+   768→   768→- `?XTransformPort=3003` → Search
+   769→   769→- `?XTransformPort=3004` → Copilot
+   770→   770→
+   771→   771→### Environment Variables
+   772→   772→
+   773→   773→| Variable | Default | Description |
+   774→   774→|----------|---------|-------------|
+   775→   775→| `NEXT_PUBLIC_API_URL` | `http://localhost:3001` | Core API base URL |
+   776→   776→| `NEXT_PUBLIC_WS_URL` | `ws://localhost:3001` | WebSocket URL |
+   777→   777→| `SANDBOX_MEMORY_MB` | 512 | Container memory limit |
+   778→   778→| `SANDBOX_CPU_QUOTA` | 100000 | Container CPU quota |
+   779→   779→| `SANDBOX_PIDS_LIMIT` | 100 | Container PID limit |
+   780→   780→| `SANDBOX_TIMEOUT` | 30 | Execution timeout (seconds) |
+   781→   781→| `SEARCH_PORT` | 3003 | Search service port |
+   782→   782→| `COPILOT_PORT` | 3004 | Copilot service port |
+   783→   783→| `CORE_API_PORT` | 3001 | Core API port |
+   784→   784→
+   785→   785→---
+   786→   786→
+   787→   787→## Configuration
+   788→   788→
+   789→   789→### Editor Settings (persisted to localStorage)
+   790→   790→
+   791→   791→| Setting | Default | Options |
+   792→   792→|---------|---------|---------|
+   793→   793→| Font Size | 14 | 8–32 |
+   794→   794→| Font Family | JetBrains Mono | Any monospace font |
+   795→   795→| Tab Size | 2 | 2, 4, 8 |
+   796→   796→| Word Wrap | off | off, on, wordWrapColumn |
+   797→   797→| Minimap | enabled | enabled, disabled |
+   798→   798→| Auto Save | afterDelay | off, afterDelay, onFocusChange |
+   799→   799→| Cursor Style | line | line, block, underline |
+   800→   800→| Zen Mode | off | on, off |
+   801→   801→| Bracket Pair Colorization | enabled | enabled, disabled |
+   802→   802→| Guides | enabled | enabled, disabled |
+   803→   803→
+   804→   804→### Terminal Settings
+   805→   805→
+   806→   806→| Setting | Default | Description |
+   807→   807→|---------|---------|-------------|
+   808→   808→| Shell Type | bash | Simulated shell (bash/zsh) |
+   809→   809→| Font Size | 14 | Terminal font size |
+   810→   810→| Cursor Blink | true | Blinking cursor |
+   811→   811→
+   812→   812→---
+   813→   813→
+   814→   814→## Contributing
+   815→   815→
+   816→   816→We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
+   817→   817→
+   818→   818→**Quick Start:**
+   819→   819→1. Fork the repository
+   820→   820→2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+   821→   821→3. Commit your changes (`git commit -m 'Add amazing feature'`)
+   822→   822→4. Push to the branch (`git push origin feature/amazing-feature`)
+   823→   823→5. Open a Pull Request
+   824→   824→
+   825→   825→---
+   826→   826→
+   827→   827→## License
+   828→   828→
+   829→   829→This project is licensed under the MIT License — see the [LICENSE](./LICENSE) file for details.
+   830→   830→
+   831→   831→---
+   832→   832→
+   833→   833→**Built with Next.js, TypeScript, Go, Rust, Python, and Docker**
+   834→   834→

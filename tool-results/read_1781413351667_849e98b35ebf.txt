@@ -1,0 +1,819 @@
+     1→# Architecture Documentation
+     2→
+     3→This document provides an in-depth look at the VS Code Web Replica's architecture, design decisions, data flows, and integration patterns.
+     4→
+     5→---
+     6→
+     7→## Table of Contents
+     8→
+     9→- [System Overview](#system-overview)
+    10→- [Frontend Architecture](#frontend-architecture)
+    11→- [Backend Architecture](#backend-architecture)
+    12→- [Data Flow Diagrams](#data-flow-diagrams)
+    13→- [State Management Architecture](#state-management-architecture)
+    14→- [API Gateway Pattern](#api-gateway-pattern)
+    15→- [WebSocket Architecture](#websocket-architecture)
+    16→- [Theming Architecture](#theming-architecture)
+    17→- [Responsive Design Architecture](#responsive-design-architecture)
+    18→- [Security Architecture](#security-architecture)
+    19→- [Deployment Architecture](#deployment-architecture)
+    20→- [Technology Decisions](#technology-decisions)
+    21→
+    22→---
+    23→
+    24→## System Overview
+    25→
+    26→VS Code Web Replica is a **polyglot microservices application** that replicates the VS Code IDE experience in the browser. The system is composed of a Next.js frontend that serves as both the UI and an API gateway, plus four specialized backend services each written in the language best suited for their domain.
+    27→
+    28→```
+    29→┌──────────────────────────────────────────────────────────────────────────┐
+    30→│                              Browser                                     │
+    31→│  ┌─────────────────────────────────────────────────────────────────────┐ │
+    32→│  │                      Next.js Frontend (Port 3000)                   │ │
+    33→│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ │ │
+    34→│  │  │  Monaco   │ │ Zustand  │ │  API     │ │ Socket.IO│ │ CSS      │ │ │
+    35→│  │  │  Editor   │ │  Stores  │ │  Client  │ │  Client  │ │  Themes  │ │ │
+    36→│  │  └──────────┘ └──────────┘ └────┬─────┘ └────┬─────┘ └──────────┘ │ │
+    37→│  └──────────────────────────────────┼───────────┼──────────────────────┘ │
+    38→│                                     │           │                        │
+    39→└─────────────────────────────────────┼───────────┼────────────────────────┘
+    40→                                      │ HTTP      │ WebSocket
+    41→                              ┌───────▼───────────▼────────┐
+    42→                              │   Caddy Reverse Proxy       │
+    43→                              │        (Port 81)            │
+    44→                              └───┬──────┬──────┬──────┬───┘
+    45→                                  │      │      │      │
+    46→                     ┌────────────▼┐  ┌──▼───┐  ┌▼────┐ ┌▼──────────┐
+    47→                     │  Core API   │  │Search│  │Sandbox│  Copilot  │
+    48→                     │  Node.js    │  │Rust  │  │  Go   │  Python   │
+    49→                     │  :3001      │  │:3003 │  │ :3002 │  :3004    │
+    50→                     └──────┬──────┘  └──────┘  └───────┘ └──────────┘
+    51→                            │
+    52→                     ┌──────▼──────┐
+    53→                     │   SQLite    │
+    54→                     │  (Prisma)   │
+    55→                     └─────────────┘
+    56→```
+    57→
+    58→### Design Principles
+    59→
+    60→1. **Polyglot by Design** — Each backend service uses the language optimized for its domain
+    61→2. **Graceful Degradation** — Every backend feature has a client-side fallback
+    62→3. **API Gateway Pattern** — Next.js API routes centralize backend communication
+    63→4. **State Isolation** — Zustand stores are domain-specific with minimal cross-store dependencies
+    64→5. **Theme-First UI** — All visual properties flow through CSS custom properties
+    65→6. **Mobile-First Responsive** — Touch-friendly defaults enhanced for desktop
+    66→
+    67→---
+    68→
+    69→## Frontend Architecture
+    70→
+    71→### Component Hierarchy
+    72→
+    73→```
+    74→page.tsx (Home)
+    75→├── LoginScreen (if not authenticated)
+    76→└── Main IDE Layout
+    77→    ├── TitleBar
+    78→    │   ├── Menu Items (File, Edit, View, Go, Run, Terminal, Help)
+    79→    │   └── Mobile Hamburger Button
+    80→    ├── ActivityBar
+    81→    │   ├── Explorer Icon
+    82→    │   ├── Search Icon
+    83→    │   ├── SCM Icon
+    84→    │   ├── Run & Debug Icon
+    85→    │   ├── Extensions Icon
+    86→    │   ├── Accounts Icon (bottom)
+    87→    │   └── Settings Icon (bottom)
+    88→    ├── Sidebar (resizable)
+    89→    │   ├── ExplorerView
+    90→    │   │   └── FileTreeNode (recursive)
+    91→    │   ├── SearchView
+    92→    │   ├── SCMView
+    93→    │   ├── RunDebugView
+    94→    │   └── ExtensionsView
+    95→    ├── EditorArea
+    96→    │   ├── TabBar
+    97→    │   │   └── Tab[] (with scroll & overflow)
+    98→    │   ├── Breadcrumbs
+    99→    │   └── Monaco Editor (split into up to 3 panes)
+   100→    ├── BottomPanel (resizable)
+   101→    │   ├── Terminal
+   102→    │   │   ├── TerminalInput (with history & tab completion)
+   103→    │   │   └── TerminalOutput (ANSI-colored)
+   104→    │   ├── ProblemsPanel
+   105→    │   ├── OutputPanel
+   106→    │   ├── DebugConsolePanel
+   107→    │   └── PortsPanel
+   108→    ├── CodeExecutionPanel
+   109→    ├── StatusBar
+   110→    │   ├── Branch Picker
+   111→    │   ├── Language Indicator
+   112→    │   ├── Cursor Position
+   113→    │   ├── WebSocket Status
+   114→    │   └── Notification Bell
+   115→    ├── MobileBottomNav (mobile only)
+   116→    ├── CommandPalette (overlay)
+   117→    ├── SettingsPanel (modal)
+   118→    ├── NotificationCenter (panel)
+   119→    ├── WorkspaceTrustDialog (modal)
+   120→    └── WelcomePage (default tab)
+   121→```
+   122→
+   123→### Rendering Pipeline
+   124→
+   125→```
+   126→User Interaction
+   127→      │
+   128→      ▼
+   129→Zustand Store Update
+   130→      │
+   131→      ▼
+   132→React Re-render (subscribers only)
+   133→      │
+   134→      ▼
+   135→Monaco Editor Update (if content change)
+   136→      │
+   137→      ▼
+   138→Auto-save Trigger (debounced, if dirty)
+   139→      │
+   140→      ▼
+   141→API Client Call (if backend available)
+   142→      │
+   143→      ▼
+   144→WebSocket Broadcast (if connected)
+   145→```
+   146→
+   147→### Key React Patterns
+   148→
+   149→**Controlled Monaco Editor:**
+   150→The Monaco editor is synchronized with Zustand's `useEditorStore`. Content changes flow from Monaco → Store, and Store updates flow back to Monaco via `editor.setValue()`. This dual-binding is managed carefully to prevent infinite loops using a `isUpdatingFromStore` ref.
+   151→
+   152→**Lazy Component Loading:**
+   153→Heavy components (Monaco editor, settings panel) are loaded lazily to reduce initial bundle size:
+   154→```typescript
+   155→const EditorArea = dynamic(() => import('@/components/layout/EditorArea'), {
+   156→  ssr: false,
+   157→  loading: () => <EditorSkeleton />,
+   158→});
+   159→```
+   160→
+   161→**Custom Event System:**
+   162→Inter-component communication uses `CustomEvent` on `document` for loosely-coupled messaging:
+   163→```typescript
+   164→// Emit
+   165→document.dispatchEvent(new CustomEvent('vscode:command', { detail: { command: 'newTerminal' } }));
+   166→
+   167→// Listen
+   168→document.addEventListener('vscode:command', handler);
+   169→```
+   170→
+   171→---
+   172→
+   173→## Backend Architecture
+   174→
+   175→### Service Communication Patterns
+   176→
+   177→```
+   178→┌──────────┐    HTTP/REST     ┌──────────┐    HTTP/REST     ┌──────────┐
+   179→│ Frontend │ ───────────────► │ Core API │ ───────────────► │ Search   │
+   180→│          │                  │          │                   │ (Rust)   │
+   181→│          │ ◄─────────────── │          │ ◄─────────────── │          │
+   182→└──────────┘    JSON/SSE      └────┬─────┘    JSON          └──────────┘
+   183→                                   │
+   184→                                   │ HTTP/REST
+   185→                                   │
+   186→                              ┌────▼─────┐    Docker API    ┌──────────┐
+   187→                              │ Sandbox  │ ───────────────► │ Docker   │
+   188→                              │  (Go)    │                   │ Container│
+   189→                              │          │ ◄─────────────── │          │
+   190→                              └──────────┘    SSE Stream    └──────────┘
+   191→                                   │
+   192→                                   │ HTTP/REST
+   193→                                   │
+   194→                              ┌────▼─────┐
+   195→                              │ Copilot  │
+   196→                              │ (Python) │
+   197→                              └──────────┘
+   198→```
+   199→
+   200→### Core API — Request Lifecycle
+   201→
+   202→```
+   203→1. Request arrives at Core API (port 3001)
+   204→2. Authentication check (if required)
+   205→3. Route to appropriate handler
+   206→4. If proxy route (search/execute/copilot):
+   207→   a. Forward request to target service
+   208→   b. If target unavailable → use local fallback
+   209→   c. Return response
+   210→5. If local route (files/workspaces/git):
+   211→   a. Process in-memory
+   212→   b. Broadcast changes via WebSocket
+   213→   c. Return response
+   214→6. Error handling with structured error responses
+   215→```
+   216→
+   217→### Sandbox — Execution Pipeline
+   218→
+   219→```
+   220→1. POST /api/execute with { code, language, options }
+   221→2. Validate language support
+   222→3. Create Docker container with:
+   223→   - Memory limit (default: 512MB)
+   224→   - CPU quota (default: 1 CPU)
+   225→   - PID limit (default: 100)
+   226→   - Network disabled
+   227→   - Read-only filesystem (except /tmp)
+   228→4. Write code to container's /tmp directory
+   229→5. Execute code with language-specific runner
+   230→6. Stream output via SSE:
+   231→   - stdout chunks → data: {"type":"stdout","content":"..."}
+   232→   - stderr chunks → data: {"type":"stderr","content":"..."}
+   233→   - exit code     → data: {"type":"exit","code":0}
+   234→7. Clean up container (or reuse for same language)
+   235→8. Return final result
+   236→```
+   237→
+   238→### Search — Indexing Pipeline
+   239→
+   240→```
+   241→1. On startup:
+   242→   a. Scan configured workspace directories
+   243→   b. Parse each file into tokens
+   244→   c. Build inverted index (term → file:line:column)
+   245→   d. Build trie for filename completion
+   246→2. On file change (via notify crate):
+   247→   a. Debounce 500ms
+   248→   b. Re-index changed file only
+   249→   c. Update inverted index incrementally
+   250→   d. Update trie if filename changed
+   251→3. On search request:
+   252→   a. Parse query (regex vs plain vs fuzzy)
+   253→   b. Query inverted index for content matches
+   254→   c. Query trie for filename matches
+   255→   d. Rank results by relevance (TF-IDF-like)
+   256→   e. Return ranked results with context snippets
+   257→```
+   258→
+   259→### Copilot — Completion Pipeline
+   260→
+   261→```
+   262→1. POST /api/completions with { file_path, language, prefix, suffix }
+   263→2. Extract code context:
+   264→   a. Parse surrounding code (imports, function signatures, class structure)
+   265→   b. Identify language patterns
+   266→   c. Determine completion context (function body, arguments, imports, etc.)
+   267→3. Generate completions:
+   268→   a. Match against language-specific templates
+   269→   b. Fill in context-aware variable names
+   270→   c. Apply common patterns (React hooks, Express routes, etc.)
+   271→4. Score completions:
+   272→   a. Template match quality
+   273→   b. Context relevance
+   274→   c. Language convention adherence
+   275→5. Return ranked completions with confidence scores
+   276→
+   277→Streaming variant follows the same pipeline but yields tokens one at a time
+   278→via Server-Sent Events for real-time display.
+   279→```
+   280→
+   281→---
+   282→
+   283→## Data Flow Diagrams
+   284→
+   285→### File Operations
+   286→
+   287→```
+   288→User creates file in ExplorerView
+   289→      │
+   290→      ▼
+   291→useFileSystemStore.createFile(name, path)
+   292→      │
+   293→      ├─► Update in-memory tree
+   294→      │
+   295→      ├─► If backend available:
+   296→      │     apiClient.createFile({ name, path, content })
+   297→      │          │
+   298→      │          ▼
+   299→      │     POST /api/core/files → Core API
+   300→      │          │
+   301→      │          ▼
+   302→      │     Core API: Store in memory + broadcast
+   303→      │          │
+   304→      │          ▼
+   305→      │     WebSocket: file:updated event
+   306→      │
+   307→      ├─► Auto-open in editor:
+   308→      │     useEditorStore.openTab(newFile)
+   309→      │
+   310→      └─► Notification: "File created"
+   311→```
+   312→
+   313→### Code Execution
+   314→
+   315→```
+   316→User clicks "Run" in CodeExecutionPanel
+   317→      │
+   318→      ▼
+   319→useCodeExecutionStore.executeCode(code, language)
+   320→      │
+   321→      ├─► Try backend:
+   322→      │     POST /api/core/execute → Core API
+   323→      │          │
+   324→      │          ▼
+   325→      │     Core API → POST localhost:3002/api/execute → Sandbox (Go)
+   326→      │          │
+   327→      │          ├─► Docker container created
+   328→      │          ├─► Code executed with resource limits
+   329→      │          ├─► SSE stream → output chunks
+   330→      │          └─► Container cleaned up
+   331→      │
+   332→      └─► Fallback (if backend unavailable):
+   333→            Local JavaScript eval() for JS
+   334→            Template-based output for Python/Go/Rust
+   335→```
+   336→
+   337→### AI Completion
+   338→
+   339→```
+   340→User types in Monaco Editor (800ms debounce)
+   341→      │
+   342→      ▼
+   343→useAICompletionStore.requestCompletion(file, position, prefix)
+   344→      │
+   345→      ├─► Try backend:
+   346→      │     POST /api/core/copilot → Core API
+   347→      │          │
+   348→      │          ▼
+   349→      │     Core API → POST localhost:3004/api/completions → Copilot (Python)
+   350→      │          │
+   351→      │          ├─► Context extraction
+   352→      │          ├─► Template matching
+   353→      │          ├─► Completion generation with confidence
+   354→      │          └─► Return completions[]
+   355→      │
+   356→      └─► Fallback:
+   357→            Client-side template matching
+   358→            Language-specific snippet insertion
+   359→      │
+   360→      ▼
+   361→Display inline suggestion in Monaco (ghost text)
+   362→      │
+   363→      ├─► Tab → Accept (insert suggestion)
+   364→      └─► Esc → Dismiss
+   365→```
+   366→
+   367→---
+   368→
+   369→## State Management Architecture
+   370→
+   371→### Store Dependency Graph
+   372→
+   373→```
+   374→useEditorStore ←─── useFileSystemStore (file content)
+   375→      │
+   376→      ├── useThemeStore (editor theme)
+   377→      ├── useSettingsStore (editor settings)
+   378→      └── useAICompletionStore (completions)
+   379→
+   380→useSidebarStore (independent)
+   381→
+   382→useTerminalStore (independent)
+   383→
+   384→useGitStore ←─── useFileSystemStore (file changes)
+   385→
+   386→useExtensionStore (independent)
+   387→
+   388→useAuthStore (independent, gates entire app)
+   389→
+   390→useWebSocketStore ←─── useStatusBarStore (connection status)
+   391→
+   392→useNotificationStore (independent, consumed by StatusBar)
+   393→
+   394→useCodeExecutionStore ←─── useEditorStore (active code)
+   395→
+   396→usePortStore (independent)
+   397→
+   398→useStatusBarStore ←─── useGitStore, useEditorStore, useWebSocketStore
+   399→```
+   400→
+   401→### Store Persistence
+   402→
+   403→| Store | Persistence | Mechanism |
+   404→|-------|-------------|-----------|
+   405→| `useSettingsStore` | Yes | localStorage (all settings) |
+   406→| `useThemeStore` | Yes | localStorage (theme selection) |
+   407→| `useAuthStore` | Partial | localStorage (token, session) |
+   408→| All others | No | In-memory only (reset on refresh) |
+   409→
+   410→### Store Communication Pattern
+   411→
+   412→Stores communicate through:
+   413→1. **Direct import** — One store imports and calls another store's actions
+   414→2. **Custom events** — `vscode:command` events for loose coupling
+   415→3. **React components** — Components read from multiple stores and coordinate
+   416→4. **WebSocket messages** — Real-time updates from backend trigger store updates
+   417→
+   418→---
+   419→
+   420→## API Gateway Pattern
+   421→
+   422→The Next.js API routes serve as an **API Gateway** that:
+   423→1. Centralizes all backend communication
+   424→2. Adds timeout handling (5-second default)
+   425→3. Provides unified error responses
+   426→4. Enables CORS-free client-side requests
+   427→5. Implements the cascading fallback strategy
+   428→
+   429→### Fallback Strategy
+   430→
+   431→```
+   432→Client Request
+   433→      │
+   434→      ▼
+   435→api-client.ts function
+   436→      │
+   437→      ├─► Try 1: Direct service call
+   438→      │     fetch('http://localhost:{PORT}/api/...')
+   439→      │          │
+   440→      │          ├─► Success → Return response
+   441→      │          └─► Failure → Try 2
+   442→      │
+   443→      ├─► Try 2: Core API proxy
+   444→      │     fetch('/api/core/{service}', ...)
+   445→      │          │
+   446→      │          ├─► Success → Return response
+   447→      │          └─► Failure → Try 3
+   448→      │
+   449→      └─► Try 3: Client-side fallback
+   450→            Local simulation / template response
+   451→```
+   452→
+   453→### Caddy Port Routing
+   454→
+   455→In production, Caddy uses the `XTransformPort` query parameter to route requests to the correct backend service:
+   456→
+   457→```
+   458→Request: https://example.com/api/search?XTransformPort=3003
+   459→                                         │
+   460→                                         ▼
+   461→                              Caddy reads XTransformPort
+   462→                                         │
+   463→                                         ▼
+   464→                              Routes to localhost:3003
+   465→```
+   466→
+   467→---
+   468→
+   469→## WebSocket Architecture
+   470→
+   471→### Connection Lifecycle
+   472→
+   473→```
+   474→1. App loads → Socket.IO client connects to Core API (port 3001)
+   475→2. Connection established:
+   476→   - Client receives 'connect' event
+   477→   - Client joins workspace room via 'session:join'
+   478→   - WebSocketStore.status = 'connected'
+   479→3. Periodic health check:
+   480→   - Client sends ping every 30s
+   481→   - Server responds with latency measurement
+   482→   - WebSocketStore.latency updated
+   483→4. On disconnect:
+   484→   - WebSocketStore.status = 'disconnected'
+   485→   - Automatic reconnection with exponential backoff
+   486→   - UI shows disconnected indicator
+   487→5. On reconnect:
+   488→   - Socket.IO automatically rejoins rooms
+   489→   - State reconciliation if needed
+   490→```
+   491→
+   492→### Event Flow
+   493→
+   494→```
+   495→Terminal Input Flow:
+   496→  User types in TerminalInput
+   497→      │
+   498→      ▼
+   499→  Socket.IO: emit('terminal:input', { sessionId, data })
+   500→      │
+   501→      ▼
+   502→  Core API: receives input
+   503→      │
+   504→      ▼
+   505→  Core API: processes command (simulated shell)
+   506→      │
+   507→      ▼
+   508→  Socket.IO: emit('terminal:output', { sessionId, data })
+   509→      │
+   510→      ▼
+   511→  TerminalOutput: renders ANSI-colored output
+   512→
+   513→File Watch Flow:
+   514→  Client: emit('file:subscribe', { path: '/workspace' })
+   515→      │
+   516→      ▼
+   517→  Core API: registers subscription
+   518→      │
+   519→      ▼
+   520→  [File changes on disk]
+   521→      │
+   522→      ▼
+   523→  Core API: emit('file:updated', { path, content })
+   524→      │
+   525→      ▼
+   526→  Client: useFileSystemStore.updateFile(path, content)
+   527→
+   528→AI Completion Flow:
+   529→  Client: emit('copilot:complete', { ...request })
+   530→      │
+   531→      ▼
+   532→  Core API: proxies to Copilot service
+   533→      │
+   534→      ▼
+   535→  Copilot: streams completions
+   536→      │
+   537→      ▼
+   538→  Core API: emit('copilot:chunk', { text, confidence })
+   539→      │
+   540→      ▼
+   541→  Client: useAICompletionStore.appendChunk(text)
+   542→      │
+   543→      ▼
+   544→  Core API: emit('copilot:done', { completions })
+   545→      │
+   546→      ▼
+   547→  Client: useAICompletionStore.finalizeCompletion()
+   548→```
+   549→
+   550→---
+   551→
+   552→## Theming Architecture
+   553→
+   554→### CSS Custom Property Hierarchy
+   555→
+   556→```
+   557→:root / .vs-light / .vs-monokai / .vs-solarized-dark / .vs-github
+   558→      │
+   559→      ├── Backgrounds (7 levels)
+   560→      │   ├── --vs-bg-main           # Main editor area
+   561→      │   ├── --vs-bg-sidebar        # Sidebar panel
+   562→      │   ├── --vs-bg-editor         # Editor background
+   563→      │   ├── --vs-bg-panel          # Bottom panel
+   564→      │   ├── --vs-bg-input          # Input fields
+   565→      │   ├── --vs-bg-dropdown       # Dropdown menus
+   566→      │   └── --vs-bg-hover          # Hover states
+   567→      │
+   568→      ├── Foregrounds (5 levels)
+   569→      │   ├── --vs-fg-primary        # Main text
+   570→      │   ├── --vs-fg-secondary      # Secondary text
+   571→      │   ├── --vs-fg-muted          # Muted/disabled text
+   572→      │   ├── --vs-fg-accent         # Accent text
+   573→      │   └── --vs-fg-on-accent      # Text on accent background
+   574→      │
+   575→      ├── Borders
+   576→      │   ├── --vs-border-default    # Default borders
+   577→      │   ├── --vs-border-focus      # Focus ring
+   578→      │   └── --vs-border-active     # Active element border
+   579→      │
+   580→      ├── Accents
+   581→      │   ├── --vs-accent            # Primary accent (blue)
+   582→      │   ├── --vs-accent-hover      # Accent hover state
+   583→      │   └── --vs-accent-muted      # Subtle accent
+   584→      │
+   585→      ├── Git Status Colors
+   586→      │   ├── --vs-git-added         # Green (new files)
+   587→      │   ├── --vs-git-modified      # Yellow (changed files)
+   588→      │   ├── --vs-git-deleted       # Red (deleted files)
+   589→      │   ├── --vs-git-untracked     # Green (untracked)
+   590→      │   ├── --vs-git-ignored       # Gray (ignored)
+   591→      │   └── --vs-git-conflict      # Purple (merge conflicts)
+   592→      │
+   593→      └── UI Elements
+   594→          ├── --vs-scrollbar-thumb   # Scrollbar color
+   595→          ├── --vs-badge-bg          # Badge background
+   596→          ├── --vs-badge-fg          # Badge text
+   597→          ├── --vs-selection-bg      # Text selection
+   598→          └── --vs-find-match-bg     # Search highlight
+   599→```
+   600→
+   601→### Monaco Theme Synchronization
+   602→
+   603→The `EditorArea.tsx` component maintains a mapping from CSS custom properties to Monaco token colors:
+   604→
+   605→```
+   606→CSS Variable Change → themeStore.setTheme()
+   607→      │
+   608→      ▼
+   609→<html> class updated (e.g., add 'vs-monokai')
+   610→      │
+   611→      ▼
+   612→EditorArea re-renders with new Monaco theme definition
+   613→      │
+   614→      ▼
+   615→monaco.editor.defineTheme('custom', monacoThemeObject)
+   616→      │
+   617→      ▼
+   618→monaco.editor.setTheme('custom')
+   619→```
+   620→
+   621→---
+   622→
+   623→## Responsive Design Architecture
+   624→
+   625→### Layout Adaptation Matrix
+   626→
+   627→| Screen Width | Activity Bar | Sidebar | Tabs | Editor | Bottom Panel |
+   628→|--------------|-------------|---------|------|--------|-------------|
+   629→| 320–374px | Bottom nav (56px) | Overlay (full-width) | Scroll + "..." | Full-width, no minimap | 40% height, collapsible |
+   630→| 375–413px | Bottom nav (56px) | Overlay (full-width) | Scroll + "..." | Full-width, no minimap | 40% height, collapsible |
+   631→| 414–767px | Bottom nav (56px) | Overlay (280px max) | Scroll + "..." | Full-width | 40% height, collapsible |
+   632→| 768–1023px | Compact (48px icons) | Compact (48px icons) | Normal | Full-width | Normal |
+   633→| 1024px+ | Full (56px) | Resizable (170–600px) | Normal | Split capable | Resizable |
+   634→
+   635→### Touch Interaction System
+   636→
+   637→```
+   638→Touch Event Detection
+   639→      │
+   640→      ├── useSwipeGesture hook
+   641→      │   ├── minDistance: 50px
+   642→      │   ├── minVelocity: 0.3
+   643→      │   ├── edgeThreshold: 20px
+   644→      │   └── Directions: left, right, up, down
+   645→      │
+   646→      ├── Long Press Detection
+   647→      │   ├── delay: 500ms
+   648→      │   ├── Used for: tab close, context menus
+   649→      │   └── Cancel on move (>10px) or touch end
+   650→      │
+   651→      └── Touch Target Enforcement
+   652→          ├── Minimum: 44×44px (iOS HIG)
+   653→          ├── 8px grid spacing
+   654→          └── Applied via Tailwind: min-h-[44px] min-w-[44px]
+   655→```
+   656→
+   657→### Mobile-Specific Components
+   658→
+   659→| Component | Desktop | Mobile |
+   660→|-----------|---------|--------|
+   661→| Activity Bar | Left icon strip (56px wide) | Bottom navigation bar (56px tall) |
+   662→| Sidebar | Resizable side panel | Full-screen overlay with backdrop |
+   663→| Menu Bar | Horizontal menu items | Hamburger menu (dropdown) |
+   664→| Tab Close | Click X button | Long-press → close |
+   665→| Tab Overflow | Horizontal scroll | "..." indicator menu |
+   666→| Settings | Two-column panel | Slide-in drawer from bottom |
+   667→| Command Palette | Centered modal | Full-screen modal |
+   668→
+   669→---
+   670→
+   671→## Security Architecture
+   672→
+   673→### Authentication Flow
+   674→
+   675→```
+   676→1. User visits app → LoginScreen shown
+   677→2. User enters password
+   678→3. AuthStore.login(password) called
+   679→   ├── Try: POST /api/core/auth/login { password }
+   680→   │   └── Server validates → Returns JWT token
+   681→   └── Fallback: Local validation (password: "vscode")
+   682→4. Token stored in AuthStore + localStorage
+   683→5. Subsequent API calls include Authorization header
+   684→6. Token expiry → Auto-logout → Show LoginScreen
+   685→```
+   686→
+   687→### Rate Limiting
+   688→
+   689→Login attempts are rate-limited on the client side:
+   690→- Maximum 5 attempts per 60-second window
+   691→- Exponential backoff on repeated failures
+   692→- UI shows remaining lockout time
+   693→
+   694→### Sandbox Security
+   695→
+   696→Docker containers used for code execution are isolated with:
+   697→
+   698→| Security Measure | Value | Purpose |
+   699→|-----------------|-------|---------|
+   700→| Memory limit | 512 MB | Prevent resource exhaustion |
+   701→| CPU quota | 1 CPU | Prevent CPU hogging |
+   702→| PID limit | 100 | Prevent fork bombs |
+   703→| Network mode | None | Prevent network access |
+   704→| Read-only root FS | Yes (except /tmp) | Prevent filesystem modification |
+   705→| Execution timeout | 30 seconds | Prevent infinite loops |
+   706→| User namespace | Rootless | Prevent privilege escalation |
+   707→
+   708→### Input Sanitization
+   709→
+   710→- **Debug Console** — `eval()` replaced with `new Function()` and math-only filtering
+   711→- **Terminal Input** — Commands validated against whitelist before execution
+   712→- **File Names** — Path traversal attacks prevented via path normalization
+   713→- **Code Execution** — Sandboxed in Docker containers (no host access)
+   714→
+   715→---
+   716→
+   717→## Deployment Architecture
+   718→
+   719→### Docker Compose Topology
+   720→
+   721→```
+   722→┌─────────────────────────────────────────────────────────────┐
+   723→│                    Docker Network: vscode-net                 │
+   724→│                                                              │
+   725→│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
+   726→│  │ frontend │  │core-api  │  │ sandbox  │  │  search  │   │
+   727→│  │  :3000   │  │  :3001   │  │  :3002   │  │  :3003   │   │
+   728→│  │          │  │          │  │ (Docker   │  │          │   │
+   729→│  │ Next.js  │  │ Node.js  │  │  socket) │  │  Rust    │   │
+   730→│  │          │  │+Socket.IO│  │          │  │          │   │
+   731→│  └────┬─────┘  └────┬─────┘  └──────────┘  └──────────┘   │
+   732→│       │              │                                      │
+   733→│       │        ┌─────▼─────┐                                │
+   734→│       │        │  copilot  │                                │
+   735→│       │        │  :3004    │                                │
+   736→│       │        │  Python   │                                │
+   737→│       │        └───────────┘                                │
+   738→│       │                                                     │
+   739→│  ┌────▼─────────────────────────────────────────────────┐   │
+   740→│  │                 caddy (Port 81)                        │   │
+   741→│  │           Reverse Proxy + TLS Termination              │   │
+   742→│  └──────────────────────────────────────────────────────┘   │
+   743→└─────────────────────────────────────────────────────────────┘
+   744→```
+   745→
+   746→### Health Check System
+   747→
+   748→Each backend service exposes a `/health` endpoint. The Core API maintains a **service registry** that periodically checks all services:
+   749→
+   750→```json
+   751→{
+   752→  "status": "healthy",
+   753→  "services": {
+   754→    "sandbox": { "status": "healthy", "latency": 12, "lastCheck": "2026-06-13T10:00:00Z" },
+   755→    "search": { "status": "healthy", "latency": 5, "lastCheck": "2026-06-13T10:00:00Z" },
+   756→    "copilot": { "status": "degraded", "latency": 150, "lastCheck": "2026-06-13T10:00:00Z" }
+   757→  }
+   758→}
+   759→```
+   760→
+   761→### Resource Allocation
+   762→
+   763→| Service | CPU Limit | Memory Limit | Reason |
+   764→|---------|-----------|-------------|--------|
+   765→| sandbox | 2 CPUs | 1 GB | Needs resources for Docker containers |
+   766→| search | 2 CPUs | 512 MB | Indexing is CPU-intensive |
+   767→| copilot | 1 CPU | 256 MB | Template engine is lightweight |
+   768→| core-api | Default | Default | Primarily I/O bound |
+   769→| frontend | Default | Default | SSR rendering |
+   770→
+   771→---
+   772→
+   773→## Technology Decisions
+   774→
+   775→### Why Polyglot Backend?
+   776→
+   777→| Service | Language | Rationale |
+   778→|---------|----------|-----------|
+   779→| **Core API** | TypeScript/Node.js | Shares types with frontend; excellent async I/O; Socket.IO native support; developer familiarity |
+   780→| **Sandbox** | Go | Docker SDK is first-class; excellent concurrency model; fast startup; low memory footprint; container management expertise in the ecosystem |
+   781→| **Search** | Rust | Zero-cost abstractions for search algorithms; predictable performance; memory-safe trie and inverted index; Axum framework provides excellent async HTTP |
+   782→| **Copilot** | Python | Rich ML/AI ecosystem; FastAPI for rapid API development; Pydantic for type-safe models; easy to swap template engine for real ML models later |
+   783→
+   784→### Why Next.js App Router?
+   785→
+   786→- **Server Components** — Reduce client bundle size for heavy pages
+   787→- **API Routes** — Built-in API gateway without separate Express server
+   788→- **File-based Routing** — Intuitive project structure
+   789→- **Middleware** — Authentication and CORS handling
+   790→- **Optimized Builds** — Automatic code splitting and tree shaking
+   791→
+   792→### Why Zustand over Redux/Context?
+   793→
+   794→- **Minimal Boilerplate** — No actions, reducers, or selectors boilerplate
+   795→- **TypeScript Native** — Full type inference without manual typing
+   796→- **Performance** — Fine-grained subscriptions prevent unnecessary re-renders
+   797→- **Bundle Size** — ~1KB vs ~7KB (Redux) or Context overhead
+   798→- **DevTools** — Redux DevTools compatible via middleware
+   799→
+   800→### Why Monaco Editor?
+   801→
+   802→- **VS Code Parity** — Same editor engine ensures authentic experience
+   803→- **Language Support** — 30+ languages with syntax highlighting out of the box
+   804→- **Extensibility** — Support for custom languages, themes, and keybindings
+   805→- **Performance** — Handles large files (100K+ lines) efficiently
+   806→- **Familiarity** — Developers already know the shortcuts and behavior
+   807→
+   808→### Why Docker for Code Execution?
+   809→
+   810→- **Security** — Complete process and network isolation
+   811→- **Resource Control** — Memory, CPU, and PID limits prevent abuse
+   812→- **Language Support** — Any language with a Docker image can be supported
+   813→- **Consistency** — Same execution environment regardless of host OS
+   814→- **Cleanup** — Containers are ephemeral and automatically cleaned up
+   815→
+   816→---
+   817→
+   818→*This architecture documentation is maintained alongside the codebase. When making significant architectural changes, please update this document accordingly.*
+   819→
